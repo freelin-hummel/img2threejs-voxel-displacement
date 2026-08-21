@@ -1,0 +1,21 @@
+name: npm Publish
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    # ci-workflows v1.2.0. Update this SHA through a reviewed PR.
+    uses: img2threejs/ci-workflows/.github/workflows/npm-publish.yml@a9c0875ed4d74e2df78395aeb98d5761f3023178
+    with:
+      tag: ${{ github.ref_name }}
+      version-file: SKILL.md
+      node-version: "20"
+      python-version: "3.10"
+      test-command: python3 -m unittest discover -s forge/tests
+    secrets:
+      npm-token: ${{ secrets.NPM_TOKEN }}

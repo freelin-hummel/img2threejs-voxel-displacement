@@ -49,10 +49,22 @@ jobs:
             exit 1
           fi
 
+          # Every file that carries the version moves together. Bumping SKILL.md alone leaves the
+          # README badge and package.json behind, which `forge/tests/test_ws6_docs.py` asserts against
+          # and which would ship an npm package whose version disagrees with the skill it installs.
           sed -i -E "s/^version: [0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$/version: $next_version/" SKILL.md
+          sed -i -E "s/version-[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?-green/version-$next_version-green/" README.md
+          sed -i -E "s/(\"version\": \")[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?(\")/\1$next_version\3/" package.json
+
+          for f in SKILL.md README.md package.json; do
+            if ! git diff --quiet -- "$f"; then continue; fi
+            echo "$f was not updated to $next_version; its version pattern no longer matches."
+            exit 1
+          done
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add SKILL.md
+          git add SKILL.md README.md package.json
           git commit -m "chore(beta): v$next_version"
           git tag -a "v$next_version" -m "v$next_version"
           git push origin HEAD:beta --follow-tags

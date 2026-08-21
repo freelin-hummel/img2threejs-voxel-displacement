@@ -128,6 +128,16 @@ A staged sculpting pipeline turns the reference image into a spec, then generate
    npx -y github:img2threejs/img2threejs uninstall
    ```
 
+   The same CLI is published to npm, which is shorter and lets you pin a version:
+
+   ```bash
+   npx -y img2threejs@latest install
+   npx -y img2threejs@beta install
+   ```
+
+   Both forms run identical code. The `github:` form needs no registry at all, so it keeps working
+   regardless of npm availability.
+
    Already cloned this repo by hand into a skills directory? `install` adopts a clean checkout and
    promotes it to the canonical location instead of refusing or overwriting it. Run
    `install --dry-run` first to see exactly what it will do.

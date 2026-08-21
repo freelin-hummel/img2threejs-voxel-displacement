@@ -97,9 +97,21 @@ if __name__ == "__main__":
 
 LIFECYCLE_SCRIPTS = ("preinstall", "install", "postinstall", "prepare")
 
-# `npx <bare-name>` resolves the npm registry at invocation time, and `img2threejs` is unregistered.
-# Allowed: `npx img2threejs/img2threejs` (GitHub shorthand) and `github:img2threejs/img2threejs`.
-BARE_NPX_PATTERN = re.compile(r"\bnpx\s+(?:-y\s+)?img2threejs(?!/)")
+# A documented `npx` invocation must say where the package comes from. `npx img2threejs` resolves the
+# registry at invocation time, so while the name was unregistered it ran whoever claimed it next; once
+# it is ours the bare form is still ambiguous about version and source. Allowed forms are therefore
+# `github:img2threejs/img2threejs`, `img2threejs/img2threejs`, and `img2threejs@<version|dist-tag>`.
+# One rule, correct both before and after the name is published.
+UNQUALIFIED_NPX_PATTERN = re.compile(r"\bnpx\s+(?:-y\s+)?img2threejs(?![/@])")
+
+# `.github/workflows/beta-release.yml` bumps every version-bearing file with these expressions. If a
+# file is reformatted so its pattern stops matching, the sed silently no-ops and that file is left
+# behind at the old version -- which is exactly how the README badge drifted before.
+BETA_BUMP_PATTERNS = {
+    "SKILL.md": re.compile(r"^version: [0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$", re.MULTILINE),
+    "README.md": re.compile(r"version-[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?-green"),
+    "package.json": re.compile(r'("version": ")[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?(")'),
+}
 
 # The instruction the installer exists to replace: it materialises a full checkout inside one host's
 # skills directory, which is the drift `CLAUDE.md` forbids.
@@ -144,12 +156,25 @@ class InstallerRepoInvariantsTest(unittest.TestCase):
             with self.subTest(hook=hook):
                 self.assertNotIn(hook, scripts)
 
-    def test_no_document_prints_the_bare_npx_form(self) -> None:
-        """The npm name is unregistered; a documented bare form is a live code-execution path for
-        whoever registers it next."""
+    def test_documented_npx_invocations_are_source_qualified(self) -> None:
+        """An unqualified `npx img2threejs` resolves whatever owns that registry name at the moment it
+        runs. Every documented form must name its source: `github:`, the owner/repo shorthand, or an
+        explicit `@version`/`@dist-tag`."""
         for path in _tracked("*.md"):
             with self.subTest(path=path.relative_to(ROOT)):
-                self.assertIsNone(BARE_NPX_PATTERN.search(path.read_text(encoding="utf-8")))
+                self.assertIsNone(UNQUALIFIED_NPX_PATTERN.search(path.read_text(encoding="utf-8")))
+
+    def test_every_version_bearing_file_matches_the_beta_bump_expression(self) -> None:
+        """A version bump that silently skips a file is the drift this guards. The beta workflow also
+        fails closed on a no-op, but that only fires on a release; this fires on every PR."""
+        for relative, pattern in BETA_BUMP_PATTERNS.items():
+            with self.subTest(relative=relative):
+                text = (ROOT / relative).read_text(encoding="utf-8")
+                self.assertEqual(
+                    len(pattern.findall(text)),
+                    1,
+                    f"{relative} must expose exactly one version string the beta bump can rewrite",
+                )
 
     def test_no_document_instructs_cloning_into_a_host_skills_directory(self) -> None:
         for path in _tracked("*.md"):
