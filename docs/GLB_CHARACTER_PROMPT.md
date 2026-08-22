@@ -74,9 +74,13 @@ Measure the spoke budget per node, do not pick it:
 ```
 python3 integrations/glb_character_pipeline/python/measure_density_convergence.py <glb> <node>
 ```
-Read the two printed tables and take **`min(convergence, density)`** per node:
+It prints two tables and then the line that matters:
+`density ceiling (largest median <= 5%)`. Take **`min(convergence, density ceiling)`** per node:
 - *convergence* = first spoke count where the radial outline stops changing.
-- *density* = largest count keeping median empty angular bins <= 5%.
+- *density ceiling* = largest count keeping median empty angular bins <= 5%. Convergence is only
+  measured up to it, because using an unsupported reference asks interpolated, vertex-free arcs to
+  define truth. If the tool reports `none`, no spoke count is supported — say so rather than picking
+  the floor.
 
 Taking convergence alone is wrong and the failure is silent: `radial_outline`
 interpolates an empty angular bin from its neighbours, so past a node's density the
@@ -103,10 +107,16 @@ Cell size is **per node, not global**, and comes from the finest real feature: a
 margin is ~1 mm, so a head needs ~1.5 mm; a large smooth surface carries nothing that
 fine and doubles the file for no measured gain below ~2.5 mm.
 
+Pass them as a `{node: metres}` map, and **do not round a measured cell size**. Stage 3 recovers
+the grid origin from the cell, so rounding a measured 1.504 mm to 1.50 mm shifts the recovered grid
+— that produced 110,695 apparent cell collisions on one node even though Surface Nets emits exactly
+one vertex per active cell by construction.
 ```
-CHARACTER_GLB=... CHARACTER_DIFFUSE=<diffuse.png> \
+CHARACTER_GLB=... CHARACTER_DIFFUSE=<diffuse.png> CHARACTER_CELL_SIZES_JSON=<cells.json> \
 python3 integrations/glb_character_pipeline/python/export_sdf_surfaces.py <node...>
 ```
+If the reference's materials may be measured but not copied, run geometry-only: vertex colour stays
+white so the independently authored Three.js material is left un-tinted.
 Colour is baked from the diffuse image, **sRGB decoded to linear** — Three.js treats a
 vertex-colour attribute as already being in the working space. The `HEDS` binary this
 writes is a dev-only intermediate and is **not** the deliverable.
@@ -119,6 +129,8 @@ first, on every node:**
 node integrations/glb_character_pipeline/node/verify_cells.mjs <bin> <glb>
 ```
 It must report **0 collisions and every quad rebuilt** before you run the encoder.
+`build-character.sh` now runs this itself before every encode, so prefer the orchestrator over
+calling the three Stage 3 scripts by hand.
 Recover the grid origin from the builder's own rule (`lo = cloud_min - 5*cell`), never by
 sweeping for a sub-cell phase — a search-based origin put 29% of vertices in an
 already-occupied cell.
@@ -216,6 +228,7 @@ rather than producing a confident wrong surface.
 | `min(convergence, density)` | Convergence alone bulged a glove to 1.12x its area while IoU *fell* 0.896 → 0.867 |
 | Per-node cell size | A 1 mm lid margin needs ~1.5 mm cells; a large smooth surface doubles the file below ~2.5 mm for no measured gain |
 | `verify_cells.mjs` before encoding | A swept grid origin put 29% of vertices in an already-occupied cell |
+| Never round a measured cell size | Rounding 1.504 mm to 1.50 mm shifted the recovered grid and produced 110,695 apparent collisions on one node |
 | `git diff` after every emit | A swapped level→filename mapping passes tsc, round-trip *and* build while shipping wrong data |
 | Measure inside the silhouette | A face-deleted model scored 0.8803 — identical to the finished face |
 | Look at the render last | A 2.49 mm-accurate surface still read as a lumpy shell, not a face |
