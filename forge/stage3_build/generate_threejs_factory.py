@@ -966,23 +966,35 @@ function polygonizeSdf(descriptor: SdfDescriptor): THREE.BufferGeometry {
     if (flip) indices.push(a, c, b, a, d, c);
     else indices.push(a, b, c, a, c, d);
   };
+  // Each quad joins the FOUR cells sharing one grid edge, so every one of those cells must exist.
+  // Bounding only the edge axis and the lower end of the other two let y/z reach `resolution`, which
+  // is a corner index, not a cell index: `cellAt` then strides into an unrelated slot (with
+  // resolution 8, `cellAt(3, 8, 1)` is 131 -- the slot for cell (3, 0, 2)) or past the end of the
+  // array, where a typed-array read yields `undefined`. `undefined < 0` is false, so the guard in
+  // `quad` passed it through to `setIndex`, which coerces it to 0. Measured on a sphere reaching its
+  // own bounds at resolution 8: 60 out-of-range reads and 108 aliased reads. A surface that touches
+  // the sampling box is therefore left OPEN at that face rather than closed with wrong triangles --
+  // pad `bounds` past the surface to get a closed mesh.
   for (let z = 0; z < side; z += 1) {
     for (let y = 0; y < side; y += 1) {
       for (let x = 0; x < side; x += 1) {
         const here = field[cornerAt(x, y, z)] <= 0;
-        if (x + 1 < side && y > 0 && z > 0 && here !== (field[cornerAt(x + 1, y, z)] <= 0)) {
+        if (x + 1 < side && y > 0 && z > 0 && y < side - 1 && z < side - 1
+          && here !== (field[cornerAt(x + 1, y, z)] <= 0)) {
           quad(
             cellVertex[cellAt(x, y - 1, z - 1)], cellVertex[cellAt(x, y, z - 1)],
             cellVertex[cellAt(x, y, z)], cellVertex[cellAt(x, y - 1, z)], !here,
           );
         }
-        if (y + 1 < side && x > 0 && z > 0 && here !== (field[cornerAt(x, y + 1, z)] <= 0)) {
+        if (y + 1 < side && x > 0 && z > 0 && x < side - 1 && z < side - 1
+          && here !== (field[cornerAt(x, y + 1, z)] <= 0)) {
           quad(
             cellVertex[cellAt(x - 1, y, z - 1)], cellVertex[cellAt(x - 1, y, z)],
             cellVertex[cellAt(x, y, z)], cellVertex[cellAt(x, y, z - 1)], !here,
           );
         }
-        if (z + 1 < side && x > 0 && y > 0 && here !== (field[cornerAt(x, y, z + 1)] <= 0)) {
+        if (z + 1 < side && x > 0 && y > 0 && x < side - 1 && y < side - 1
+          && here !== (field[cornerAt(x, y, z + 1)] <= 0)) {
           quad(
             cellVertex[cellAt(x - 1, y - 1, z)], cellVertex[cellAt(x, y - 1, z)],
             cellVertex[cellAt(x, y, z)], cellVertex[cellAt(x - 1, y, z)], !here,

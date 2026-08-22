@@ -366,6 +366,50 @@ class ImplicitSurfaceIsSmooth(unittest.TestCase):
         # 4/3 pi r^3 for r = 0.6 is 0.905; surface nets on a 24-cell grid lands a little under.
         self.assertAlmostEqual(total, 0.905, delta=0.06)
 
+    # A sphere whose surface pushes out through the six face centres of its own sampling box:
+    # face centres sit at 1.0, the radius is 1.25, and the corners at sqrt(3) stay outside. The
+    # in-bounds SPHERE above never exercises the boundary planes, which is why the quad pass could
+    # read a cell index of `resolution` for years without a test noticing.
+    SPHERE_THROUGH_BOUNDS = {
+        "primitives": [{"id": "ball", "type": "sphere", "radius": 1.25,
+                        "transform": {"position": [0, 0, 0]}}],
+        "operations": [],
+        "resolution": 24,
+        "bounds": {"min": [-1, -1, -1], "max": [1, 1, 1]},
+    }
+
+    def test_a_surface_reaching_its_sampling_bounds_emits_no_stray_index(self):
+        """The quad pass must not index a cell that does not exist.
+
+        Each quad joins the four cells sharing one grid edge. Bounding only the edge axis and the
+        lower end of the other two let an index reach `resolution` -- a corner coordinate, not a cell
+        coordinate -- so `cellAt` either aliased into an unrelated slot or read past the array, where
+        a typed-array read gives `undefined`. `undefined < 0` is false, so it survived the guard in
+        `quad` and reached `setIndex`, which coerces it to 0: triangles wired to whichever vertex
+        happens to be first. A range check cannot catch that (0 is a valid index), so this measures
+        edge length instead -- adjacent cells are at most a few cells apart, and a stray index
+        produces an edge spanning the model.
+        """
+        mesh = self._mesh(self.SPHERE_THROUGH_BOUNDS)
+        indices, positions = mesh["indices"], mesh["positions"]
+        self.assertGreater(len(indices), 0, "no surface was emitted at all")
+
+        step = 2.0 / self.SPHERE_THROUGH_BOUNDS["resolution"]
+        longest = 0.0
+        for i in range(0, len(indices), 3):
+            triangle = [positions[indices[i + k] * 3:indices[i + k] * 3 + 3] for k in range(3)]
+            for a, b in ((0, 1), (1, 2), (2, 0)):
+                longest = max(longest, math.dist(triangle[a], triangle[b]))
+
+        # Two cells sharing a grid edge are at most one cell apart per axis, so a legitimate edge
+        # cannot exceed a couple of cell diagonals. Six cells is loose and still far below the
+        # model-spanning edges a stray index produces.
+        self.assertLess(
+            longest, 6 * step,
+            f"longest triangle edge {longest:.4f} exceeds {6 * step:.4f}; an index points at a cell "
+            f"that is not adjacent, which is the signature of an out-of-range or aliased cell read",
+        )
+
     def test_normals_point_outward_and_are_unit_length(self):
         mesh = self._mesh(self.SPHERE)
         checked = 0
