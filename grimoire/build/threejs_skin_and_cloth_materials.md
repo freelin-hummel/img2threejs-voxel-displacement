@@ -31,7 +31,9 @@ twice as if it were two**.
 `sheen: 0.65` with an untouched `sheenColor` contributes exactly `0`. A fabric profile that specifies
 `sheen` and omits `sheenColor` is specifying nothing.
 
-> Status in this repo: `generate_threejs_factory.py:3079` already defaults `sheenColor` to `#ffffff`
+> Status in this repo: `generate_threejs_factory.py` already defaults `sheenColor` to `#ffffff`
+> (grep `sheenColor:` — it is the file's only occurrence, in the emitted
+> `MeshPhysicalMaterial` constructor)
 > rather than three's black, so emitted code escapes the trap. But **no registry profile declares
 > `sheenColor`** — `fabric.woven-matte` and `hair.human.code-only` both give `sheen` without it. The
 > tint therefore comes from a generator fallback and is never reference-derived. Fix by adding
@@ -130,7 +132,7 @@ model.
 |---|---|
 | `thickness` default `0`, `attenuationDistance` default `Infinity` | `MeshPhysicalMaterial.js:59,61` |
 | `attenuationColor` default white | `MeshPhysicalMaterial.js:62` |
-| The generator already forces `transparent` when `transmission > 0` | `generate_threejs_factory.py:3090` |
+| The generator already forces `transparent` when `transmission > 0` | `generate_threejs_factory.py`, emitted `transparent:` in the `MeshPhysicalMaterial` constructor |
 
 On a closed opaque body mesh, transmission produces a glassy figure, not fleshy skin — and it costs a
 full extra render target. The registry already states the honest limit: *"MeshPhysicalMaterial has no
