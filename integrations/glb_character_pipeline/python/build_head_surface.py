@@ -121,7 +121,15 @@ for (a0,b0,c0),(a1,b1,c1) in EDGES:
     acc_p[cross] += np.stack([px[cross], py[cross], pz[cross]], axis=1)
     acc_n[cross] += 1
 acc_n = np.maximum(acc_n, 1)
-V = lo + (np.stack([ai, aj, ak], axis=1) + acc_p/acc_n[:,None]) * CELL
+# Keep every vertex strictly inside the active cell that owns it. A zero crossing can average to an
+# exact face/corner; float32 then floors it into the neighbouring cell and breaks the one-cell/one-
+# vertex invariant the compact encoder verifies. The guard is one quarter of the encoder's own 8-bit
+# in-cell quantisation step, so the largest correction is < cell/1020 (1.47 um at a 1.5 mm cell) and
+# remains below the already-declared encoding precision.
+fraction = acc_p / acc_n[:, None]
+cell_guard = 1.0 / (255.0 * 4.0)
+fraction = np.clip(fraction, cell_guard, 1.0 - cell_guard)
+V = lo + (np.stack([ai, aj, ak], axis=1) + fraction) * CELL
 # quads: one per sign-changing grid edge whose 4 surrounding cells are all active
 # one quad per sign-changing grid edge, per axis
 out = []

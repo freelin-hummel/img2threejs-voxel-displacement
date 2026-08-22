@@ -239,7 +239,8 @@ for (const level of LEVELS) {
     const block = Buffer.concat(parts.map((p) => Buffer.from(p.buffer, p.byteOffset, p.byteLength)));
     blocks.push(block);
     out.nodes.push({
-      node: node.node, region: node.region, cellMillimetres: node.cellMillimetres,
+      node: node.node, region: node.region, material: node.material ?? null,
+      cellMillimetres: node.cellMillimetres,
       vertexCount: n, origin: lo, dims,
       bytes: { cells: cells.length, offsets: offsets.length, colours: colours.length, edges: n * 2, exceptions: exceptionBytes.length },
       exceptionQuads: exceptions.length,

@@ -22,6 +22,7 @@
 set -euo pipefail
 
 : "${IMG2THREEJS_SHOWCASE_ROOT:?set IMG2THREEJS_SHOWCASE_ROOT to a companion img2threejs-showcase checkout (see integrations/glb_character_pipeline/README.md)}"
+PKG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$IMG2THREEJS_SHOWCASE_ROOT" && pwd)"
 export IMG2THREEJS_SHOWCASE_ROOT="$REPO_ROOT"
 cd "$REPO_ROOT"
@@ -49,7 +50,6 @@ fi
 # shellcheck disable=SC1090
 source "$CONFIG"
 
-PKG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY_SCRIPTS="$PKG_DIR/python"
 NODE_SCRIPTS="$PKG_DIR/node"
 
@@ -69,7 +69,9 @@ export CHARACTER_WORKDIR="${CHARACTER_WORKDIR:-work/head}"
 export CHARACTER_BIN_DIR="${CHARACTER_BIN_DIR:-public/head}"
 export CHARACTER_WORK_TAG="${CHARACTER_WORK_TAG:-}"
 export CHARACTER_CODEC="${CHARACTER_CODEC:-src/demos/girl-character/surfaceCodec.ts}"
+export CHARACTER_CODEC_IMPORT="${CHARACTER_CODEC_IMPORT:-./surfaceCodec}"
 export CHARACTER_REGIONS_JSON="${CHARACTER_REGIONS_JSON:-}"
+export CHARACTER_CELL_SIZES_JSON="${CHARACTER_CELL_SIZES_JSON:-}"
 export CHARACTER_SECTION_REGIONS_JSON="${CHARACTER_SECTION_REGIONS_JSON:-}"
 export CHARACTER_SPOKES_JSON="${CHARACTER_SPOKES_JSON:-}"
 export CHARACTER_CROSS_SECTIONS="${CHARACTER_CROSS_SECTIONS:-}"
@@ -134,6 +136,11 @@ for level in $CHARACTER_LEVELS; do
     *)  dest="${CHARACTER_DEST_DEFAULT:-src/demos/$CHARACTER_DEMO_ID/surfaceData.ts}" ;;
   esac
   echo "  -- level $level -> $dest"
+  case "$level" in
+    default|"") surface_bin="${CHARACTER_BIN_DIR}/sdf-surfaces.bin" ;;
+    *)          surface_bin="${CHARACTER_BIN_DIR}/sdf-surfaces-${level}.bin" ;;
+  esac
+  node "$NODE_SCRIPTS/verify_cells.mjs" "$surface_bin" "$CHARACTER_GLB"
   node --max-old-space-size=8192 "$NODE_SCRIPTS/encode_surfaces.mjs" "$level"
   node "$NODE_SCRIPTS/emit_surface_module.mjs" "$level" "$dest"
   # SAFETY NET, carried over from the showcase pipeline after this exact mistake happened once: a

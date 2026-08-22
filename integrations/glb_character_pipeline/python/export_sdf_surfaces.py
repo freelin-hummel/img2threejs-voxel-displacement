@@ -21,7 +21,7 @@ Layout, little-endian:
 from __future__ import annotations
 import json, os, struct, subprocess, sys
 from collections import defaultdict
-import os
+from io import BytesIO
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -48,7 +48,9 @@ ROOT = Path(os.environ.get('IMG2THREEJS_SHOWCASE_ROOT', '.')).resolve()
 #   CHARACTER_OUT_PREFIX    output .bin path prefix (default public/head/sdf-surfaces)
 #   CHARACTER_WORKDIR       passed through to build_head_surface.py (default work/head)
 GLB_PATH = Path(os.environ.get('CHARACTER_GLB', str(ROOT / 'public/mesh/girl-character-baseline.glb')))
-DIFFUSE_PATH = Path(os.environ.get('CHARACTER_DIFFUSE', str(ROOT / 'work/baseline-textures/01-texture_diffuse.png')))
+_diffuse_value = os.environ.get('CHARACTER_DIFFUSE', str(ROOT / 'work/baseline-textures/01-texture_diffuse.png'))
+EMBEDDED_MATERIALS = _diffuse_value.lower() in {'embedded', 'glb'}
+DIFFUSE_PATH = None if _diffuse_value.lower() in {'none', 'neutral', '', 'embedded', 'glb'} else Path(_diffuse_value)
 OUT_PREFIX = os.environ.get('CHARACTER_OUT_PREFIX', str(ROOT / 'public/head/sdf-surfaces'))
 _regions_file = os.environ.get('CHARACTER_REGIONS_JSON')
 if _regions_file:
@@ -64,6 +66,9 @@ else:
 # from doubling for no measured gain.
 CELL = {9: 0.0015, 0: 0.0025}
 DEFAULT_CELL = 0.0020
+_cell_sizes_file = os.environ.get('CHARACTER_CELL_SIZES_JSON')
+if _cell_sizes_file:
+    CELL.update({int(k): float(v) for k, v in json.loads(Path(_cell_sizes_file).read_text()).items()})
 
 raw = GLB_PATH.read_bytes()
 off, chunks = 12, {}
@@ -78,8 +83,37 @@ def acc(i):
     o=bv.get('byteOffset',0)+a.get('byteOffset',0)
     return np.frombuffer(BIN,dtype=np.dtype('<'+dt),count=a['count']*nc,offset=o).reshape(a['count'],nc)
 
-diffuse = np.asarray(Image.open(DIFFUSE_PATH).convert('RGB'))
-TH, TW = diffuse.shape[:2]
+_image_cache = {}
+def embedded_image(image_index):
+    cached = _image_cache.get(image_index)
+    if cached is not None:
+        return cached
+    image = g['images'][image_index]
+    view = g['bufferViews'][image['bufferView']]
+    start = view.get('byteOffset', 0)
+    data = BIN[start:start + view['byteLength']]
+    decoded = np.asarray(Image.open(BytesIO(data)).convert('RGB'))
+    _image_cache[image_index] = decoded
+    return decoded
+
+TEXTURE_SOURCE = [texture.get('source') for texture in g.get('textures', [])]
+
+def sample_texture(texture_info, uv, fallback):
+    if texture_info is None:
+        return np.broadcast_to(np.asarray(fallback, dtype=np.float64), (len(uv), len(fallback))).copy()
+    source = TEXTURE_SOURCE[texture_info['index']]
+    image = embedded_image(source)
+    height, width = image.shape[:2]
+    x = np.clip((uv[:, 0] % 1.0 * width).astype(int), 0, width - 1)
+    y = np.clip((uv[:, 1] % 1.0 * height).astype(int), 0, height - 1)
+    return image[y, x].astype(np.float64)
+
+if DIFFUSE_PATH is not None:
+    diffuse = np.asarray(Image.open(DIFFUSE_PATH).convert('RGB'))
+    TH, TW = diffuse.shape[:2]
+else:
+    diffuse = None
+    TH = TW = 0
 
 # Optional trailing "xN" argument scales every cell size, for measuring what triangle budget actually
 # costs in fidelity rather than assuming it.
@@ -107,31 +141,97 @@ for node in nodes:
     T = np.load(workdir/'T.npy').astype(np.int64)
     prims = g['meshes'][g['nodes'][node]['mesh']]['primitives']
     P = np.concatenate([acc(p['attributes']['POSITION']) for p in prims]).astype(np.float64)
-    UV = np.concatenate([acc(p['attributes']['TEXCOORD_0']) for p in prims]).astype(np.float64)
-    col = diffuse[np.clip((UV[:,1] % 1.0 * TH).astype(int), 0, TH-1),
-                  np.clip((UV[:,0] % 1.0 * TW).astype(int), 0, TW-1)].astype(np.float64)
-    hash_cell = 0.005
-    lo = np.minimum(V.min(0), P.min(0)) - hash_cell
-    buck = defaultdict(list)
-    for i, k in enumerate(map(tuple, np.floor((P - lo)/hash_cell).astype(np.int64))): buck[k].append(i)
-    vk = np.floor((V - lo)/hash_cell).astype(np.int64)
-    srgb = np.zeros((len(V), 3))
-    for n in range(len(V)):
-        k = tuple(vk[n]); cand = []
-        for dx in (-1,0,1):
-            for dy in (-1,0,1):
-                for dz in (-1,0,1): cand += buck.get((k[0]+dx,k[1]+dy,k[2]+dz), [])
-        if not cand: continue
-        cand = np.asarray(cand)
-        srgb[n] = col[cand[np.argsort(np.linalg.norm(P[cand]-V[n], axis=1))[:4]]].mean(axis=0)
-    lin = np.where(srgb/255 <= 0.04045, (srgb/255)/12.92, (((srgb/255)+0.055)/1.055)**2.4)
-    COL = np.clip(np.round(lin*255), 0, 255).astype(np.uint8)
+    material_info = None
+    if EMBEDDED_MATERIALS:
+        colours = []
+        roughness = []
+        metalness = []
+        material_records = []
+        for primitive in prims:
+            uv = acc(primitive['attributes']['TEXCOORD_0']).astype(np.float64)
+            material = g['materials'][primitive.get('material', 0)]
+            pbr = material.get('pbrMetallicRoughness', {})
+            base_factor = np.asarray(pbr.get('baseColorFactor', [1, 1, 1, 1])[:3], dtype=np.float64)
+            base_srgb = sample_texture(pbr.get('baseColorTexture'), uv, [255, 255, 255]) / 255.0
+            base_linear = np.where(base_srgb <= 0.04045, base_srgb / 12.92,
+                                   ((base_srgb + 0.055) / 1.055) ** 2.4)
+            colours.append(np.clip(base_linear * base_factor, 0, 1))
+
+            mr = sample_texture(pbr.get('metallicRoughnessTexture'), uv, [255, 255, 255]) / 255.0
+            roughness.append(np.clip(mr[:, 1] * float(pbr.get('roughnessFactor', 1)), 0, 1))
+            metalness.append(np.clip(mr[:, 2] * float(pbr.get('metallicFactor', 1)), 0, 1))
+            material_records.append({
+                'materialIndex': int(primitive.get('material', 0)),
+                'baseColorFactor': [float(value) for value in pbr.get('baseColorFactor', [1, 1, 1, 1])],
+                'metallicFactor': float(pbr.get('metallicFactor', 1)),
+                'roughnessFactor': float(pbr.get('roughnessFactor', 1)),
+                'doubleSided': bool(material.get('doubleSided', False)),
+                'alphaMode': material.get('alphaMode', 'OPAQUE'),
+                'alphaCutoff': float(material.get('alphaCutoff', 0.5)),
+                'emissiveFactor': [float(value) for value in material.get('emissiveFactor', [0, 0, 0])],
+                'normalScale': float(material.get('normalTexture', {}).get('scale', 1)),
+                'occlusionStrength': float(material.get('occlusionTexture', {}).get('strength', 1)),
+                'hasBaseColorTexture': 'baseColorTexture' in pbr,
+                'hasMetallicRoughnessTexture': 'metallicRoughnessTexture' in pbr,
+                'hasNormalTexture': 'normalTexture' in material,
+                'hasOcclusionTexture': 'occlusionTexture' in material,
+                'hasEmissiveTexture': 'emissiveTexture' in material,
+            })
+        source_colour = np.concatenate(colours)
+        source_roughness = np.concatenate(roughness)
+        source_metalness = np.concatenate(metalness)
+        material_info = {
+            **material_records[0],
+            'roughnessMedian': float(np.median(source_roughness)),
+            'roughnessP25': float(np.percentile(source_roughness, 25)),
+            'roughnessP75': float(np.percentile(source_roughness, 75)),
+            'metalnessMedian': float(np.median(source_metalness)),
+            'metalnessP25': float(np.percentile(source_metalness, 25)),
+            'metalnessP75': float(np.percentile(source_metalness, 75)),
+            'surfaceColourEncoding': 'linear RGB sampled from embedded baseColor texture',
+        }
+    elif diffuse is None:
+        # Geometry-only mode for references whose materials/textures may be measured but not copied.
+        # White vertex colour leaves the independently-authored Three.js material un-tinted.
+        COL = np.full((len(V), 3), 255, dtype=np.uint8)
+    else:
+        UV = np.concatenate([acc(p['attributes']['TEXCOORD_0']) for p in prims]).astype(np.float64)
+        source_srgb = diffuse[np.clip((UV[:,1] % 1.0 * TH).astype(int), 0, TH-1),
+                              np.clip((UV[:,0] % 1.0 * TW).astype(int), 0, TW-1)].astype(np.float64) / 255.0
+        source_colour = np.where(source_srgb <= 0.04045, source_srgb / 12.92,
+                                 ((source_srgb + 0.055) / 1.055) ** 2.4)
+    if EMBEDDED_MATERIALS or diffuse is not None:
+        hash_cell = 0.005
+        lo = np.minimum(V.min(0), P.min(0)) - hash_cell
+        buck = defaultdict(list)
+        for i, key in enumerate(map(tuple, np.floor((P - lo)/hash_cell).astype(np.int64))):
+            buck[key].append(i)
+        vk = np.floor((V - lo)/hash_cell).astype(np.int64)
+        linear = np.zeros((len(V), 3))
+        for index in range(len(V)):
+            key = tuple(vk[index]); candidates = []
+            for dx in (-1,0,1):
+                for dy in (-1,0,1):
+                    for dz in (-1,0,1):
+                        candidates += buck.get((key[0]+dx,key[1]+dy,key[2]+dz), [])
+            if not candidates:
+                continue
+            candidates = np.asarray(candidates)
+            nearest = candidates[np.argsort(np.linalg.norm(P[candidates]-V[index], axis=1))[:4]]
+            linear[index] = source_colour[nearest].mean(axis=0)
+        COL = np.clip(np.round(linear*255), 0, 255).astype(np.uint8)
     fn = np.cross(V[T[:,1]]-V[T[:,0]], V[T[:,2]]-V[T[:,0]])
     N = np.zeros_like(V)
     for c in range(3): np.add.at(N, T[:,c], fn)
     N /= np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-12)
-    entries.append({'node': node, 'region': NODE_REGION.get(node, f'region{node}'), 'cellMillimetres': round(cell*1000, 2),
-                    'vertexCount': int(len(V)), 'indexCount': int(T.size)})
+    # Keep the configured cell exactly enough to reproduce the builder's grid origin. Rounding a
+    # measured 1.504 mm cell to 1.50 mm shifted the recovered grid and created 110,695 apparent cell
+    # collisions on one node even though Surface Nets emits one vertex per active cell by construction.
+    entry = {'node': node, 'region': NODE_REGION.get(node, f'region{node}'), 'cellMillimetres': round(cell*1000, 6),
+             'vertexCount': int(len(V)), 'indexCount': int(T.size)}
+    if material_info is not None:
+        entry['material'] = material_info
+    entries.append(entry)
     body = bytearray()
     body += V.astype('<f4').tobytes()
     body += N.astype('<f4').tobytes()
@@ -152,5 +252,9 @@ if keep_head:
 dest = Path(f'{OUT_PREFIX}{suffix}.bin')
 dest.parent.mkdir(parents=True, exist_ok=True)
 dest.write_bytes(out)
-_shown = dest.relative_to(ROOT) if str(dest.resolve()).startswith(str(ROOT.resolve())) else dest
+resolved_dest = dest.resolve()
+try:
+    _shown = resolved_dest.relative_to(ROOT)
+except ValueError:
+    _shown = resolved_dest
 print(f"\nwrote {_shown}  {len(out)/1e6:.2f} MB  ({len(entries)} node(s))")
