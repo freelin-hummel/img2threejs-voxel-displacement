@@ -5,6 +5,24 @@ All notable changes to **img2threejs** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] — 2026-08-22
+
+### Added
+
+- Add code-only skin and cloth material profiles with validation for engine clamps, folded
+  uniforms, and sheen configuration.
+- Label multipart GLB nodes from measured bounds while keeping semantic assignments explicitly
+  provisional until render confirmation.
+- Add executed-geometry gates for flat-colour vertex regions and swept-arc bend, span, and taper,
+  plus required semantic-region declarations in render-profile v2.
+
+### Fixed
+
+- Deduplicate `SKILL.md` into one continuous reconstruction loop so every host loads one canonical
+  sequence of gates.
+- Bound all three axes in the SDF quad pass, preventing out-of-range and aliased cell reads at the
+  sampling-grid boundary.
+
 ## [1.5.0] — 2026-08-12
 
 **Theme: The Character Update.** A character stops being a stylized approximation. A skeleton is
@@ -376,6 +394,7 @@ and harness improvements to the underlying code generator.
 - Action-ready runtime hierarchy exposing pivots, sockets, and colliders.
 - Token-efficient, code-only output (diffable TypeScript + JSON spec, no binaries).
 
+[1.5.1]: https://github.com/img2threejs/img2threejs/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/img2threejs/img2threejs/compare/v1.4.3...v1.5.0
 [1.4.1]: https://github.com/hoainho/img2threejs/compare/v1.4.0...4e9fbecae0e63b370581737c89991d4dca84c287
 [1.4.0]: https://github.com/hoainho/img2threejs/releases/tag/v1.4.0
