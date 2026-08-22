@@ -179,6 +179,10 @@ The factory generator repeats the strict-quality gate and is fail-closed: on fai
 `BLOCKED` with the spec artifact, failure metrics, causes, and next action, and does not write a
 factory. `--allow-nonstrict` is only for explicit legacy test fixtures, never production output.
 
+Rebuilding a character from a **GLB reference** rather than a photo is a different route with its own
+gates — the GLB is a measurement instrument and never ships. Copy-paste prompt, requirements, and the
+measurement behind each rule: [docs/GLB_CHARACTER_PROMPT.md](docs/GLB_CHARACTER_PROMPT.md).
+
 For the script-by-script reference, the full scripts table, and expected artifacts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
