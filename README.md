@@ -181,7 +181,10 @@ factory. `--allow-nonstrict` is only for explicit legacy test fixtures, never pr
 
 Rebuilding a character from a **GLB reference** rather than a photo is a different route with its own
 gates — the GLB is a measurement instrument and never ships. Copy-paste prompt, requirements, and the
-measurement behind each rule: [docs/GLB_CHARACTER_PROMPT.md](docs/GLB_CHARACTER_PROMPT.md).
+measurement behind each rule: [docs/GLB_CHARACTER_PROMPT.md](docs/GLB_CHARACTER_PROMPT.md). When a build
+completes but still does not match the reference, [docs/GLB_CHARACTER_POLISH_PROMPT.md](docs/GLB_CHARACTER_POLISH_PROMPT.md)
+is the follow-up pass: it localises the mismatch to a band and a named failure mode before anything
+is changed.
 
 For the script-by-script reference, the full scripts table, and expected artifacts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

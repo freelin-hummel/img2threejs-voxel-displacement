@@ -268,3 +268,9 @@ still does not match the reference.
 
 "This cannot reach the requested fidelity from this reference" is a valid result. Say it
 rather than producing a confident wrong surface.
+
+---
+
+If this run completes and the result still does not match the reference, do **not** re-run this
+prompt — it rebuilds everything and localises nothing. Use
+[`GLB_CHARACTER_POLISH_PROMPT.md`](GLB_CHARACTER_POLISH_PROMPT.md) instead.
