@@ -5,23 +5,52 @@ All notable changes to **img2threejs** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.1] — 2026-08-22
+## [1.5.1] — 2026-08-23
+
+**Theme: the GLB-reference route.** A GLB stops being an informal aid and becomes a measurement
+instrument with a packaged pipeline, three bounded prompts, and an explicit statement of which
+parameters it can be held to 1:1 and which it cannot.
 
 ### Added
 
-- Add code-only skin and cloth material profiles with validation for engine clamps, folded
-  uniforms, and sheen configuration.
-- Label multipart GLB nodes from measured bounds while keeping semantic assignments explicitly
-  provisional until render confirmation.
-- Add executed-geometry gates for flat-colour vertex regions and swept-arc bend, span, and taper,
-  plus required semantic-region declarations in render-profile v2.
+- Add `integrations/glb_character_pipeline`, an opt-in three-stage reconstruction — cross-section
+  loft, implicit surface, TypeScript encode — carrying its own `pyproject.toml` and `uv.lock` so the
+  stdlib-only `forge` core stays dependency-free. Nothing in `forge/` imports it. Stage 1 reproduces
+  the reference character's shipped `crossSections.ts` exactly: 748 rings, 86,240 points, 9 regions.
+- Make the GLB optional throughout: with no reference, the GLB-dependent stages are skipped and the
+  parametric path is used alone.
+- Add three copy-paste prompts for the route — build, polish and animation — each bounded by when to
+  use it and when not, the parameters it forces to the GLB 1:1 with the check that proves it, and the
+  three things that cannot be 1:1 at all.
+- Add code-only skin and cloth material profiles with validation for engine clamps, folded uniforms,
+  and sheen configuration.
+- Label multipart GLB nodes from measured bounds, keeping semantic assignments explicitly provisional
+  until render confirmation.
+- Add executed-geometry gates for flat-colour vertex regions and swept-arc bend, span and taper, plus
+  required semantic-region declarations in render-profile v2.
+- Measure the spoke budget instead of choosing it: `measure_density_convergence.py` now prints the
+  density ceiling and caps convergence at it, so a spoke count the point cloud cannot support is no
+  longer presented as converged.
+- Accept per-node cell sizes through `CHARACTER_CELL_SIZES_JSON`, and support a geometry-only run
+  that leaves vertex colour white for an independently authored material.
+
+### Changed
+
+- Reduce `SKILL.md` from 582 to 415 lines by removing a duplicated stage block and a stranded loop
+  tail, so every host loads one continuous sequence of gates.
+- List all 15 live demos in the README with the version each was built with.
 
 ### Fixed
 
-- Deduplicate `SKILL.md` into one continuous reconstruction loop so every host loads one canonical
-  sequence of gates.
 - Bound all three axes in the SDF quad pass, preventing out-of-range and aliased cell reads at the
   sampling-grid boundary.
+- Correct the swapped `x2`/`x3` tier mapping in `configs/example.env`. `x3` uses a bigger cell and is
+  the coarser tier, so the template was writing each level into the other's file — valid, mislabelled
+  data that `tsc`, the round-trip check and the build all pass.
+- Clamp the in-cell fraction away from the cell boundary in `build_head_surface.py`, so a recovered
+  vertex cannot be attributed to a neighbouring cell. Verified topology-neutral on the reference node:
+  356,243 vertices and 713,012 triangles, unchanged.
+- Replace two rotted line-number citations in the material grimoire with symbol references.
 
 ## [1.5.0] — 2026-08-12
 
