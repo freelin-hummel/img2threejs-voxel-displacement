@@ -95,6 +95,7 @@ Match the measured signal to one cause. These are the modes this pipeline actual
 | `centroid*Delta` non-zero, `widthDelta` ~0 | placement, not shape | fix the transform; do not touch cells or spokes |
 | Right shape, wrong handedness | rotation used where a reflection was needed | negate the lateral axis only, then flip triangle winding back — `validate_chirality` catches this, `medial_lateral_bias` catches a pair wrong the *same* way on both sides |
 | Looks worse at higher quality | swapped tier mapping | `git diff` the three `surfaceData*.ts` |
+| A joint creases or loses volume the moment it bends | not a weight problem — too few edge loops across the joint | `joint_loops.py <meshes.json> --min-loops N`; the fix is upstream in the surface build, no weight tuning reaches it |
 
 If the signal matches none of these, say so and stop. A change with no named mechanism is a guess
 even when it improves the number.
@@ -145,3 +146,9 @@ was measured, which mode you named, what you changed, and what the re-measuremen
 the changes you reverted.
 
 "This cannot reach the requested fidelity from this reference" is a valid result.
+
+---
+
+Once the shape holds still, motion is a separate pass with its own failure modes — a rig bound to
+an ungated surface hides surface defects as art problems. Use
+[`GLB_CHARACTER_ANIMATION_PROMPT.md`](GLB_CHARACTER_ANIMATION_PROMPT.md).

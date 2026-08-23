@@ -190,25 +190,30 @@ that header is machine-printed and is the one number in this pipeline nobody can
 with no error anywhere: tsc, the round-trip check and the build all pass, because the module
 is still valid TypeScript carrying a valid but mislabelled level.
 
-## Step 6 — Rig and features
+## Step 6 — Surface features
+
+Hair is a hard gate on geometry **before** any render:
 
 ```bash
-python3 forge/stage5_rig/validate_rig_payload.py <spec>    # before binding any Skeleton
+python3 forge/stage4_review/scalp_exposure.py --rings <rings.json> --hair-points <points.json>
 ```
 
-Left/right is a **reflection**, never a rotation: negate the lateral axis only. Two defects
-need two gates — `validate_chirality` catches a rotation mistaken for a reflection, and
-`medial_lateral_bias` against a reference catches a pair wrong the *same* way on both sides,
-which any mirror test passes by construction. Reflecting inverts triangle winding; flip it
-back or `flatShading` lights the limb as though lit from behind.
-
-Hair: `scalp_exposure.py` is a hard gate on geometry before any render. A bald patch is
-always a failure; a coverage shortfall is a soft signal and never on its own authorises
-widening the masses.
+A bald patch is always a failure; a coverage shortfall is a soft signal and never on its own
+authorises widening the masses.
 
 A facial feature placed as a thin card (eye, lash) is fitted as a clean analytic form seated
 into its socket. Do not chase zero error on the socket rim — make the residual **one-sided**
 (always proud, never sunk). Chasing zero cost three rebuilds; two constants fixed it.
+
+Left/right is a **reflection**, never a rotation: negate the lateral axis only, then flip the
+triangle winding back or `flatShading` lights the limb as though lit from behind. Two defects
+need two checks and `validate_sculpt_spec.py <spec> --json` runs both: `validate_chirality`
+catches a rotation mistaken for a reflection, and `medial_lateral_bias` catches a pair wrong
+the *same* way on both sides, which any mirror test passes by construction.
+
+**Rigging and motion are not part of this pass.** A skeleton bound to a surface that has not
+been gated yet hides surface defects as art problems. Finish Step 8, then use
+[`GLB_CHARACTER_ANIMATION_PROMPT.md`](GLB_CHARACTER_ANIMATION_PROMPT.md).
 
 ## Step 7 — Gates. One viewpoint is not evidence.
 
@@ -229,6 +234,21 @@ Read `sampledVertexCount`, `unmeasuredAttachments` and `missingAzimuths` before 
 clean verdict — each names the part of the model the gate did not look at. A hole through a
 skull, a hat at hip height and a floating charm all survived eight front-only review rounds
 before these gates existed.
+
+Each gate answers one question and no gate covers another's:
+
+| Gate | The question it answers |
+|---|---|
+| `self_intersection.py` | does a mesh cross itself |
+| `pairwise_penetration.py <meshes> --allow A,B` | do two parts interpenetrate — every allowed pair is one it stops checking |
+| `objectness.py --reference R --render X` | does the render read as the object at all |
+| `check_part_coverage.py --spec S --manifest M` | is every part the spec promised actually present |
+| `vertex_region_gate.py --geometry G --palette P` | did each region land where it was claimed |
+| `swept_arc_gate.py --geometry G --component C` | is a curved component actually that curve — a silhouette IoU passes a straight cone |
+| `joint_loops.py <meshes>` | is there enough geometry at each joint to survive bending later |
+
+Run `joint_loops.py` in *this* pass even though nothing moves yet. It fails on the surface
+build, not on the rig, and finding that out after a skeleton is bound wastes the rig work.
 
 ## Step 8 — Prove nothing is fetched, then look at it
 

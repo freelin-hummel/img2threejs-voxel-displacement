@@ -184,7 +184,9 @@ gates — the GLB is a measurement instrument and never ships. Copy-paste prompt
 measurement behind each rule: [docs/GLB_CHARACTER_PROMPT.md](docs/GLB_CHARACTER_PROMPT.md). When a build
 completes but still does not match the reference, [docs/GLB_CHARACTER_POLISH_PROMPT.md](docs/GLB_CHARACTER_POLISH_PROMPT.md)
 is the follow-up pass: it localises the mismatch to a band and a named failure mode before anything
-is changed.
+is changed. Once the shape holds, [docs/GLB_CHARACTER_ANIMATION_PROMPT.md](docs/GLB_CHARACTER_ANIMATION_PROMPT.md)
+rigs and animates it — a reference GLB usually declares no skin and no animation, so every joint, weight
+and pose in that pass is computed rather than copied.
 
 For the script-by-script reference, the full scripts table, and expected artifacts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
