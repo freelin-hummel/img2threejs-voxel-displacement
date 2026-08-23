@@ -1,16 +1,27 @@
-# GLB-reference character prompt
+# GLB-reference character prompt — build
 
-A copy-paste prompt for rebuilding a character from a **GLB reference** as procedural Three.js code,
-for img2threejs 1.5.1 and later. It works for any character.
+The first of three prompts for the GLB-mediated character route. It takes a GLB reference and
+produces the procedural TypeScript that reproduces its measured surface, with no `.glb` or `.bin`
+fetched at runtime.
 
-This is the GLB-mediated route: the GLB is a *measurement instrument*, and the deliverable is
-TypeScript that reproduces the measured surface with no `.glb` or `.bin` fetched at runtime. For the
-ordinary single-image route, the prompt in the README's "Driving it harder" section is the right
-starting point instead.
+| | |
+|---|---|
+| **Use it when** | you have a GLB reference and no built surfaces yet |
+| **Do not use it when** | there is no GLB — use the single-image route in the README's "Driving it harder" section instead; or the build already completed and the result merely looks wrong, which is [`GLB_CHARACTER_POLISH_PROMPT.md`](GLB_CHARACTER_POLISH_PROMPT.md) |
+| **Next** | [polish](GLB_CHARACTER_POLISH_PROMPT.md) if the shape is off, then [animation](GLB_CHARACTER_ANIMATION_PROMPT.md) |
 
-Every rule below exists because skipping it produced a wrong result that passed the gates in place at
-the time. The measured figures are kept in the prompt on purpose — an agent that reads why a rule
-exists follows it; an agent handed a bare rule negotiates with it.
+## Read this before using it
+
+**This is reference material, not a guarantee.** It is written to be general, so it cannot know your
+subject: a different GLB has different node counts, different feature sizes and a different density
+ceiling, and the measured figures quoted throughout came from one character. Expect to adapt it, and
+expect the first run not to be the last. Treat every number in it as an example of *what to measure*,
+not as a value to copy.
+
+**Do not re-run it hoping for a better result.** A full pass re-splats every node and is expensive.
+If it completed and the shape is wrong, the polish prompt localises the cause in one node instead of
+rebuilding all of them. Re-run this prompt only when the surfaces were never built — the emitted
+header's `nodes` count tells you which case you are in.
 
 ## Requirements
 
@@ -20,7 +31,11 @@ exists follows it; an agent handed a bare rule negotiates with it.
 - a multipart GLB is preferred; a merged single-node asset still runs, but cannot support per-region
   claims
 
----
+## The prompt
+
+Copy everything inside this block, fill the placeholders, and paste it as a single message.
+
+````markdown
 
 Build a procedural Three.js character from a GLB reference using img2threejs 1.5.1.
 
@@ -34,6 +49,48 @@ Demo id:                  <subject-id>          # lowercase, hyphenated; becomes
 Showcase root:            <PATH_TO_img2threejs-showcase>
 Real longest dimension:   <e.g. 1.70 m>         # sanity-checks scale; never used to scale
 ```
+
+## Force these to the GLB, 1:1
+
+The reference is a **measurement instrument**, and every parameter it genuinely carries is measured
+rather than approximated. Do not eyeball, round or "improve" any of these — each one has a source in
+the file and a check that proves it landed:
+
+| Parameter | Where it comes from in the GLB | How it is verified |
+|---|---|---|
+| Size and bounds | node world-space bounds from `probe_glb.py` / `label_glb_nodes.py` | figure height and per-node extents match the reference; state the residual in metres |
+| Proportions | per-band widths and centroids | `mesh_reference_compare.py --align landmarks` — `widthDelta`, `depthDelta`, `centroidXDelta`, `centroidZDelta` per band |
+| Geometry | the node's own vertex cloud, contoured by Surface Nets at the measured cell | `verify_cells.mjs` reports 0 collisions and every quad rebuilt; `verify_roundtrip.mjs` reports identical vertex and triangle counts, identical colours, and positions inside the quantisation step |
+| Base colour | `baseColorTexture` x `baseColorFactor`, sampled per vertex, sRGB decoded to linear | median per-region colour delta against the reference render |
+| Roughness, metalness | `metallicRoughnessTexture` green/blue x `roughnessFactor` / `metallicFactor`, per vertex | the emitted material record per region, read back and compared to the GLB's declared figures |
+| Region count and extents | `semanticDecomposition` plus measured bounds | every node in `CHARACTER_NODES` appears in the emitted header's `nodes` |
+
+Scale is measured, never fitted: the cell size that recovers the grid must be the measured value
+carried at full precision. Rounding a measured 1.504 mm to 1.50 mm shifted the recovered grid and
+produced 110,695 apparent cell collisions on one node.
+
+### Three things cannot be 1:1, and saying so is part of the job
+
+Read this before promising a match, because two of the three are commonly assumed to be available
+and are not:
+
+1. **Rigging and animation are usually absent from the asset.** A baseline GLB typically reports
+   `skinCount: 0`, `animationCount: 0` and carries no `JOINTS_0` or `WEIGHTS_0`. There is nothing to
+   match 1:1 — every joint, weight and pose is computed, and that must be reported as computed. If
+   your GLB *does* carry skins or animations, say so and ask before proceeding: matching them is a
+   different deliverable from this pipeline's contract.
+2. **Texture images, the UV atlas and normal maps are deliberately not copied.** SKILL.md's contract
+   is that the reference's "topology/materials are never copied into the factory", and the skill
+   emits no textures. The *values* above are measured and baked into code; the image files are not
+   shipped. A surface detail below the cell size — leather grain, fabric weave — is therefore
+   authored procedurally, and must be labelled authored, not measured.
+3. **Anything finer than the cell.** A 1.5 mm cell cannot carry a 0.2 mm feature. That is a
+   resolution statement, not a tuning failure; lower the cell for that node or state the limit.
+
+If a build genuinely needs the baseline's UV atlas, the pipeline has one gated escape hatch —
+`CHARACTER_ALLOW_BASELINE_UV=1`, which `bake_atlas_uvs.py` refuses to run without. It is documented
+as an authorised deviation from the no-baseline-assets rule. Using it means the result is no longer
+purely code-only, so say that in the report rather than leaving the claim standing.
 
 ## Step 0 — Preflight. Do this before anything else and stop if any line fails.
 
@@ -288,6 +345,7 @@ still does not match the reference.
 
 "This cannot reach the requested fidelity from this reference" is a valid result. Say it
 rather than producing a confident wrong surface.
+````
 
 ---
 

@@ -1,14 +1,30 @@
-# GLB-reference character animation prompt
+# GLB-reference character prompt — animation
 
-The third pass, after [`GLB_CHARACTER_PROMPT.md`](GLB_CHARACTER_PROMPT.md) built the surfaces and
-[`GLB_CHARACTER_POLISH_PROMPT.md`](GLB_CHARACTER_POLISH_PROMPT.md) closed the shape gap. Run it when
-the figure looks right standing still and now has to move.
+The third of three prompts for the GLB-mediated character route. It rigs and animates a character
+whose surfaces are already built and gated.
 
-Rigging is the one stage where a GLB reference usually gives you **nothing to copy**, so almost
-every number here is computed. That makes it the stage where guessed constants do the most damage,
-and every rule below is one that a measurement overturned.
+| | |
+|---|---|
+| **Use it when** | the figure looks right standing still, and has passed the build pass's gates including `joint_loops.py` |
+| **Do not use it when** | the surface has not been gated — a skeleton bound to an ungated surface makes surface defects read as art problems; or `joint_loops.py` fails, which is a surface-build finding and no amount of weight tuning reaches it |
+| **Before this** | [build](GLB_CHARACTER_PROMPT.md), then [polish](GLB_CHARACTER_POLISH_PROMPT.md) |
 
----
+## Read this before using it
+
+**This is reference material, not a guarantee.** The measured figures throughout — dominant-bone
+percentages, capsule radii, gait harmonics — came from one character with one axis convention. They
+are there to show *what to measure and what a wrong answer looks like*, not to be copied. The sign
+table in Step 5 in particular must be re-derived for your own axes; copying it is how a gait ends up
+playing backwards.
+
+**Do not run this before the shape is settled.** Rigging is the most expensive pass to redo, because
+a surface change invalidates the weights. Finish the build and polish passes first.
+
+## The prompt
+
+Copy everything inside this block, fill the placeholders, and paste it as a single message.
+
+````markdown
 
 Rig and animate a GLB-referenced img2threejs character whose surfaces are already built.
 
@@ -21,6 +37,22 @@ Showcase root:   <PATH_TO_img2threejs-showcase>
 Motion wanted:   <e.g. "walk cycle", "idle breathing", "draw the sword">
 Props:           <rigid items held or worn — sword, bag, tool — or NONE>
 ```
+
+## What can and cannot be 1:1 here
+
+This is the stage where "match the GLB exactly" most often means matching something the file does
+not contain. Establish which case you are in at Step 0 and put it in the report:
+
+| | |
+|---|---|
+| **Rig, when the GLB carries none** | `skinCount: 0`, `animationCount: 0`, no `JOINTS_0`/`WEIGHTS_0` — there is nothing to match. Every joint, radius, weight and pose is **computed**, and each must trace to a measurement of this model or a cited gait dataset. Report them as computed, never as matched. |
+| **Rig, when the GLB carries one** | matching it is a different deliverable from this pipeline's contract, and a licence question. Stop and ask. |
+| **Bind-pose proportions** | these *are* 1:1 and must stay so. Joint positions come from the built model's own measured bounds, so a knee sits where the shin mesh ends. Re-measure after rigging: binding must not move a vertex at rest. |
+| **Anything below the cell size** | a resolution statement, not a rig problem. |
+
+The one 1:1 check this stage owes the reference: **the rest pose must still match.** Re-run the band
+comparison after binding. A skeleton that shifts the figure at phase 0 has broken the shape the
+previous two passes measured, and no motion quality makes that acceptable.
 
 ## Step 0 — Confirm there is no rig to copy
 
@@ -238,3 +270,4 @@ what is still **unverified**. Close with:
 "This motion cannot be reached from this rig without changing the surface topology" is a valid
 result — `joint_loops.py` failing is exactly that finding. Say it rather than tuning weights against
 a joint with no geometry in it.
+````

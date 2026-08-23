@@ -179,14 +179,29 @@ The factory generator repeats the strict-quality gate and is fail-closed: on fai
 `BLOCKED` with the spec artifact, failure metrics, causes, and next action, and does not write a
 factory. `--allow-nonstrict` is only for explicit legacy test fixtures, never production output.
 
+### Copy-paste prompts for the GLB-reference route
+
 Rebuilding a character from a **GLB reference** rather than a photo is a different route with its own
-gates — the GLB is a measurement instrument and never ships. Copy-paste prompt, requirements, and the
-measurement behind each rule: [docs/GLB_CHARACTER_PROMPT.md](docs/GLB_CHARACTER_PROMPT.md). When a build
-completes but still does not match the reference, [docs/GLB_CHARACTER_POLISH_PROMPT.md](docs/GLB_CHARACTER_POLISH_PROMPT.md)
-is the follow-up pass: it localises the mismatch to a band and a named failure mode before anything
-is changed. Once the shape holds, [docs/GLB_CHARACTER_ANIMATION_PROMPT.md](docs/GLB_CHARACTER_ANIMATION_PROMPT.md)
-rigs and animates it — a reference GLB usually declares no skin and no animation, so every joint, weight
-and pose in that pass is computed rather than copied.
+gates — the GLB is a measurement instrument and never ships. Three prompts cover it, each in its own
+copy block:
+
+| Prompt | Use it when | Do not use it when |
+|---|---|---|
+| [Build](docs/GLB_CHARACTER_PROMPT.md) | you have a GLB and no built surfaces yet | there is no GLB, or the build already completed and merely looks wrong |
+| [Polish](docs/GLB_CHARACTER_POLISH_PROMPT.md) | the build completed and the result does not look like the GLB | the surfaces were never built — that is a build re-run, not a polish |
+| [Animation](docs/GLB_CHARACTER_ANIMATION_PROMPT.md) | the figure looks right standing still and has passed the build gates | the surface is ungated, or `joint_loops.py` fails — that is a surface finding no weight tuning reaches |
+
+They force every parameter the GLB genuinely carries — size, proportions, per-band widths and
+centroids, base colour, roughness and metalness — to the measured value, with the check that proves
+it landed. Three things are **not** 1:1 and each prompt says so: rigging and animation are usually
+absent from the asset (`skinCount: 0`, `animationCount: 0`), texture images and normal maps are
+deliberately not copied per this skill's code-only contract, and nothing finer than the node's cell
+size can be carried at all.
+
+**These are reference material, not a guarantee.** They are written to be general, so the measured
+figures in them came from one character and are there to show what to measure — not values to copy.
+Run the one that matches your situation rather than all three in sequence; each notes the cost of
+being used out of turn.
 
 For the script-by-script reference, the full scripts table, and expected artifacts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

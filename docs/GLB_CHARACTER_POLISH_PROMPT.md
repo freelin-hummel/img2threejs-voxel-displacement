@@ -1,15 +1,33 @@
-# GLB-reference character polish prompt
+# GLB-reference character prompt — polish
 
-The companion to [`GLB_CHARACTER_PROMPT.md`](GLB_CHARACTER_PROMPT.md). Use it when the build
-**completed** but the result does not look like the GLB.
+The second of three prompts for the GLB-mediated character route. Its whole job is to **localise** a
+mismatch to one band and one named cause before anything is changed.
 
-It is deliberately shorter than the init prompt, because it gets pasted mid-session when context
-is already full. Its whole job is to make the agent **localise** the mismatch before changing
-anything. A polish pass that rebuilds everything learns nothing: the earlier failure in this
-project was a change justified by a measurement that had two variables moving at once, and the
-number quoted as proof turned out to describe a different setting entirely.
+| | |
+|---|---|
+| **Use it when** | the build **completed** and the result does not look like the GLB |
+| **Do not use it when** | the surfaces were never built — if the emitted header's `nodes` count is below `CHARACTER_NODES`, you are looking at the cross-section loft and nothing here will fix it; re-run [build](GLB_CHARACTER_PROMPT.md). Also not for motion, which is [animation](GLB_CHARACTER_ANIMATION_PROMPT.md) |
+| **Next** | [animation](GLB_CHARACTER_ANIMATION_PROMPT.md), once the shape holds still |
 
----
+## Read this before using it
+
+**This is reference material, not a guarantee.** The failure-mode table below covers the modes this
+pipeline is known to produce. Your subject can present one that is not in it — the prompt tells the
+agent to say so and stop rather than force a match to the nearest row, and that is the correct
+outcome, not a failure of the prompt.
+
+**Respect the stop rule; this is the prompt most easily abused.** It is a
+one-change-then-re-measure loop with a deliberate termination condition. Running it repeatedly in
+the hope of convergence produces changes nobody can attribute and burns a full re-splat each round.
+Two consecutive changes that fail to improve the targeted measurement means the remaining gap is not
+reachable by config — that is information, and the honest output is which regions still differ and
+by how much.
+
+## The prompt
+
+Copy everything inside this block, fill the placeholders, and paste it as a single message.
+
+````markdown
 
 Polish a GLB-referenced img2threejs character that built successfully but does not match the
 reference.
@@ -23,6 +41,27 @@ Showcase root:   <PATH_TO_img2threejs-showcase>
 Config used:     <path to the .env from the init run>
 Complaint:       <in your own words — "the face is a lumpy shell", "the arm is on the wrong side">
 ```
+
+## What "1:1" means in a polish pass
+
+Every gap you close must close **towards a measured figure**, never towards taste. Before changing
+anything, write down the reference value and the current value:
+
+| Parameter | Reference source | Current value read from |
+|---|---|---|
+| Per-band width and depth | `mesh_reference_compare.py` on the GLB | the same run's candidate columns |
+| Band centroid, lateral and depth | same | same — a limb the right size on the wrong side |
+| Figure height and node extents | `probe_glb.py` bounds | the built model's bounds |
+| Base colour per region | `baseColorTexture` x `baseColorFactor`, sRGB decoded to linear | the emitted vertex colours |
+| Roughness, metalness per region | `metallicRoughnessTexture` x its factors | the emitted material record |
+| Vertex and triangle count per node | the round-trip check against the binary | the emitted header |
+
+A change that improves the render but moves a value **away** from the reference is not a fix; it is
+taste overriding measurement, and it will fail the next comparison. Revert it and say why.
+
+Two limits are not defects and must not be chased: anything finer than the node's cell size is a
+resolution statement, and texture images, the UV atlas and normal maps are deliberately not copied
+per SKILL.md's contract, so surface detail below the cell is authored and must be labelled authored.
 
 ## Rule for this whole pass
 
@@ -146,6 +185,7 @@ was measured, which mode you named, what you changed, and what the re-measuremen
 the changes you reverted.
 
 "This cannot reach the requested fidelity from this reference" is a valid result.
+````
 
 ---
 
