@@ -12,8 +12,25 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "_shared"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from feature_acceptance_policy import feature_gate_failures
-from cs2_review import load_review_scene
 from status_banner import emit_status
+
+
+def _load_review_scene(scene_path: Path) -> dict:
+    """Resolve the CS2 review-scene loader only on the CS2 path.
+
+    This was a module-scope `from cs2_review import load_review_scene`, which made every base run --
+    and, through test_structure_gates.py, thirteen base structural-gate tests -- depend on a domain
+    module being importable. With it absent the whole module failed to import and those thirteen
+    tests disappeared as one unittest loader error instead of failing visibly.
+    """
+    try:
+        from cs2_review import load_review_scene
+    except ImportError as exc:
+        raise ImportError(
+            "--review-scene-json needs the CS2 review scene loader, which is not installed. "
+            "Install the CS2 domain plugin, or omit --review-scene-json for a non-CS2 run."
+        ) from exc
+    return load_review_scene(scene_path)
 
 
 VALID_ACTIONS = {"continue", "refine-spec", "refine-code", "request-input", "stop"}
@@ -351,7 +368,7 @@ def main(argv: list[str]) -> int:
             scene_path = Path(args.review_scene_json).expanduser()
             if not scene_path.is_file():
                 raise FileNotFoundError(f"--review-scene-json does not exist: {scene_path}")
-            scene = load_review_scene(scene_path)
+            scene = _load_review_scene(scene_path)
             expected = scene.get("fixtureId")
             if cs2_review.get("reviewScene", {}).get("fixtureId") != expected:
                 raise ValueError("CS2 review report does not match --review-scene-json")
