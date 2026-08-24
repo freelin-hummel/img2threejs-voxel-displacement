@@ -58,7 +58,7 @@ Conversation context is disposable; `.img2threejs/state.json` is the local check
 Initialize once per reconstruction, then gate every step through it:
 
 ```bash
-python3 forge/state.py init --state .img2threejs/state.json --reference <img> --profile <generic|cs2|character> --spec object-sculpt-spec.json
+python3 forge/state.py init --state .img2threejs/state.json --reference <img> --profile <generic|installed-domain> --spec object-sculpt-spec.json
 python3 forge/next.py --state .img2threejs/state.json [object-sculpt-spec.json]
 python3 forge/state.py mark <step-id> --state .img2threejs/state.json --evidence <path>
 ```
@@ -98,7 +98,8 @@ Full flags: `grimoire/scripts.md`. Never let a script *score* visuals — that i
 1a. **Local Spec Search** — after image analysis, before writing or refining a spec, pull local
     domain evidence (anatomy/PBR/wear/geometry/runtime/physics) rather than inventing it:
     `python3 forge/stage2_spec/new_pre_spec_assessment.py "Name" --image <img> --out assessment.json`
-    (auto-runs BM25, auto-picks `cs2`/`core_3d` collection, writes a `localSpecSearch` bundle that
+    (auto-runs BM25 over the `core_3d` collection, or the collection a declared domain contributes
+    -- the collection is NEVER guessed from the target name; writes a `localSpecSearch` bundle that
     `new_sculpt_spec.py --assessment` carries into the spec). Full query-expansion recipe
     (bilingual terms, focused `search_specs.py` retrieval, cache rules):
     `grimoire/intake/local_spec_search.md`. MUST read it before retrying an incomplete or

@@ -5,6 +5,34 @@ All notable changes to **img2threejs** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed — BREAKING
+
+- **A domain is no longer inferred from the target's name.** `detect_cs2_intent` and its 17-keyword
+  table (including bare `"fade"` and `"karambit"`) are removed, so a target called
+  `"AK-47 | Redline"` or `"Karambit Doppler"` no longer identifies itself as CS2 — it resolves to the
+  generic `core_3d` evidence collection like any other object. Declare the domain instead; `--cs2`
+  and `--profile cs2` are unchanged. Name similarity is not a legitimate resolution input
+  (`PLUGIN_CONTRACT.md` §13), and the old heuristic silently applied CS2's quality floors and
+  evidence collection to anything whose name happened to contain one of those words.
+- The local-spec-search collection now defaults to `core_3d` rather than `cs2`. That step runs on
+  every profile, so every generic run was previously searching a domain corpus by default.
+- `objectClass.cs2: true` is replaced by `objectClass.domain: "<id>"`. Specs authored before this
+  change carry the old field.
+- `weapon-v1.4` no longer requires a CS2 marker to pass strict validation. It is the weapon *shape*
+  template, keyed by classified kind, and CS2 is a finish/material domain riding the generic
+  hard-surface path — so requiring the marker meant a plain sword could pass only by being labelled a
+  CS2 skin. Domain coherence is still enforced by `validate_cs2_contract`.
+
+### Added
+
+- `forge/_shared/domains/` — a domain registry. Each module declares one `DOMAIN` mapping
+  contributing checklist steps, a splice anchor, and an evidence collection; registration is by
+  presence, so the base pipeline holds no list of domain names. `--profile` choices derive from it,
+  and an unregistered profile fails loud naming what is available instead of quietly running as
+  generic. `workflow_state.py` and `forge/state.py` now contain no domain name at all.
+
 ## [1.5.1] — 2026-08-22
 
 ### Added
