@@ -1173,6 +1173,7 @@ def apply_character_template(
 # anodized-multicolored, e.g. Doppler) need a low roughness + high metalness +
 # strong environment reflection or they render muddy; see
 # grimoire/build/cs2_finishes.md and grimoire/intake/cs2_texture_acquisition.md.
+CS2_DOMAIN_ID = "cs2"
 CS2_FINISH_STYLES = [
     "solid", "hydrographic", "anodized", "spray-paint",
     "anodized-multicolored", "custom-paint-job", "patina", "gunsmith",
@@ -1519,7 +1520,7 @@ def apply_cs2_template(
     oc["structureKind"] = ["blade", "grip", "guard"]
     oc["motionPotential"] = ["static", "inspect-orbit"]
     oc["materialFamilies"] = ["metal", "anodized-coat" if profile["viewDependent"] else "painted-coat"]
-    oc["cs2"] = True
+    oc["domain"] = CS2_DOMAIN_ID
     complexity = pre.setdefault("complexity", {})
     complexity["tier"] = "ultra-complex"
     decision = pre.setdefault("specDepthDecision", {})
@@ -2327,7 +2328,7 @@ def main(argv: list[str]) -> int:
         pre = assessment.get("preSpecAssessment", {})
         oc = pre.get("objectClass", {}) if isinstance(pre, dict) else {}
         domain = oc.get("primaryDomain") if isinstance(oc, dict) else None
-        cs2_marker = bool(oc.get("cs2")) if isinstance(oc, dict) else False
+        cs2_marker = oc.get("domain") == CS2_DOMAIN_ID if isinstance(oc, dict) else False
     incoming_routing = assessment.get("pipelineRouting") if isinstance(assessment, dict) else None
     incoming_classification = incoming_routing.get("classification") if isinstance(incoming_routing, dict) else None
     explicit_track = "character-v1.5" if args.character or domain in {"character", "hybrid"} else None

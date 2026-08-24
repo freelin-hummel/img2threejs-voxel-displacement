@@ -895,8 +895,14 @@ def validate_pipeline_routing_contract(spec: dict[str, Any], errors: list[str]) 
         errors.append("character-v1.5 routing cannot carry cs2Intake")
     if routing_track == "character-v1.5" and object_class.get("primaryDomain") not in {"character", "hybrid"}:
         errors.append("character-v1.5 routing requires the character template")
-    if routing_track == "weapon-v1.4" and not legacy_cs2 and object_class.get("cs2") is not True:
-        errors.append("weapon-v1.4 routing requires the CS2 weapon template")
+    # There is deliberately no domain requirement on weapon-v1.4. This used to read
+    #   if routing_track == "weapon-v1.4" and not legacy_cs2 and object_class.get("cs2") is not True
+    # which was wrong twice over: weapon-v1.4 is the weapon *shape* template, keyed by classified
+    # kind, and CS2 is a finish/material domain that rides the generic hard-surface path
+    # (apply_cs2_template sets primaryDomain="object"). Because weapon-v1.4 was also the fallback for
+    # every unrecognised kind, the check meant a plain sword could pass strict validation only by
+    # being labelled a CS2 skin. A domain's own coherence is already enforced by
+    # validate_cs2_contract, which runs whenever the spec carries that domain's intake.
 
 
 def validate_materials(spec: dict[str, Any], errors: list[str], warnings: list[str]) -> set[str]:
