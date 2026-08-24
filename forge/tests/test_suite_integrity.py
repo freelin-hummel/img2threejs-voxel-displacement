@@ -17,13 +17,14 @@ import json
 import subprocess
 import sys
 import unittest
+from functools import lru_cache
 from pathlib import Path
 
 TESTS_DIR = Path(__file__).resolve().parent
 
 # Raise this deliberately when tests are added; never lower it to make a red suite green. A drop
 # means tests stopped being collected, which is the failure this file exists to catch.
-COLLECTED_FLOOR = 1124
+COLLECTED_FLOOR = 1134
 
 
 REPO_ROOT = TESTS_DIR.parents[1]
@@ -51,7 +52,10 @@ print(json.dumps({
 """
 
 
+@lru_cache(maxsize=1)
 def _discover() -> dict:
+    # Cached: the subprocess imports every test module, so calling it once per assertion cost ~22s
+    # of the suite's wall clock for an identical answer.
     proc = subprocess.run(
         [sys.executable, "-c", _PROBE],
         cwd=REPO_ROOT,
