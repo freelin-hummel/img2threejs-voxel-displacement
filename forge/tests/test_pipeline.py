@@ -86,6 +86,8 @@ class PipelineTest(unittest.TestCase):
         r = run(
             "stage2_spec/new_pre_spec_assessment.py",
             "Karambit Fade",
+            "--collection",
+            "cs2",
             "--out",
             self.assessment,
         )
@@ -890,16 +892,28 @@ class PipelineTest(unittest.TestCase):
         spec = json.loads(self.spec.read_text())
         self.assertNotIn("skin-finish", {m["id"] for m in spec["materials"]})
 
-    def test_cs2_intent_autodetected_from_target_name(self):
+    def test_a_domain_looking_target_name_is_not_auto_detected(self):
+        # Declared breaking change. The base used to infer the CS2 domain from the target's name
+        # (a " | " separator, or any of 17 keywords including bare "fade" and "karambit"). That is
+        # name-similarity resolution, which PLUGIN_CONTRACT.md section 13 forbids, so it is gone: a
+        # domain now has to be declared, not guessed from what the thing is called.
         r = run("stage2_spec/new_pre_spec_assessment.py", "Karambit | Doppler", "--out", self.assessment)
         self.assertEqual(r.returncode, 0, r.stderr)
         payload = json.loads(self.assessment.read_text())
-        self.assertTrue(payload["preSpecAssessment"]["objectClass"]["cs2"])
+        self.assertNotIn("domain", payload["preSpecAssessment"]["objectClass"])
+        self.assertEqual(payload["localSpecSearch"]["collection"], "core_3d")
+
+    def test_a_declared_domain_is_still_honoured(self):
+        r = run("stage2_spec/new_pre_spec_assessment.py", "Karambit Doppler", "--cs2", "--out", self.assessment)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        payload = json.loads(self.assessment.read_text())
+        self.assertEqual(payload["preSpecAssessment"]["objectClass"]["domain"], "cs2")
 
     def test_cs2_defaults_to_ultra_complex(self):
-        # CS2 is held to the top fidelity bar: --cs2 (or autodetected intent) defaults the tier to
-        # ultra-complex (targetMinDetails 16) in both the assessment and the authored spec.
-        r = run("stage2_spec/new_pre_spec_assessment.py", "Karambit | Doppler", "--out", self.assessment)
+        # CS2 is held to the top fidelity bar: --cs2 defaults the tier to ultra-complex
+        # (targetMinDetails 16) in both the assessment and the authored spec. The domain must be
+        # declared -- it is no longer inferred from the target name.
+        r = run("stage2_spec/new_pre_spec_assessment.py", "Karambit | Doppler", "--cs2", "--out", self.assessment)
         self.assertEqual(r.returncode, 0, r.stderr)
         pre = json.loads(self.assessment.read_text())["preSpecAssessment"]
         self.assertEqual(pre["complexity"]["tier"], "ultra-complex")

@@ -235,6 +235,11 @@ def run_cli_fixture(
     )
     environment = os.environ.copy()
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    # This fixture's profile defines only the "cs2" collection, and these tests are about snippets,
+    # caching and error shapes -- not about which collection the CLI defaults to. Name it explicitly
+    # so they stop depending on that default, which is now "core_3d".
+    if "--collection" not in arguments:
+        arguments = ("--collection", "cs2", *arguments)
     return subprocess.run(
         [sys.executable, str(cli), *arguments],
         cwd=root,
@@ -922,7 +927,9 @@ class CliOutputTest(unittest.TestCase):
             (root / ".cache" / "spec-search").symlink_to(outside, target_is_directory=True)
 
             result = subprocess.run(
-                [sys.executable, str(cli), "needle", "--json"],
+                # Names the collection for the same reason run_cli_fixture does: this fixture defines
+                # only "cs2", and the test is about the cache failure, not the CLI's default.
+                [sys.executable, str(cli), "--collection", "cs2", "needle", "--json"],
                 cwd=root,
                 env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
                 capture_output=True,

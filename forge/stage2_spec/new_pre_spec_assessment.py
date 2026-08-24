@@ -86,18 +86,10 @@ DETAIL_MINIMUMS = {
 # wear layer, hardware, stitching/fasteners) than a generic object at the same structural
 # complexity tier -- so --cs2 defaults to the ultra-complex tier (targetMinDetails 16), and the
 # detail-count floor never drops below this even if --complexity is explicitly set lower.
+CS2_DOMAIN_ID = "cs2"
 CS2_DETAIL_MINIMUM = 9
 
 # Lightweight keyword heuristic, not exhaustive: catches the common phrasing ("CS2 skin",
-# "AK-47 | Redline", "Karambit Doppler") so --cs2 doesn't have to be typed by hand for the
-# obvious case. A miss here just means the agent (or the user) sets --cs2 explicitly --
-# vision/prompt-based detection beyond this heuristic is inherently the agent's judgment call.
-CS2_INTENT_KEYWORDS = (
-    "cs2", "csgo", "counter-strike", "counter strike", "weapon skin", "knife skin", "glove skin",
-    "doppler", "gamma doppler", "marble fade", "case hardened", "fade",
-    "karambit", "butterfly knife", "bayonet", "gut knife", "falchion", "bowie knife",
-    "classic knife",
-)
 
 DEFAULT_SPEC_SEARCH_LIMIT: Final = 3
 DEFAULT_SPEC_SEARCH_SNIPPET_CHARS: Final = 250
@@ -126,16 +118,12 @@ class PreSpecPayload(PreSpecPayloadRequired, total=False):
     localSpecSearch: LocalSpecSearchPayload
 
 
-def detect_cs2_intent(target_name: str) -> bool:
-    lowered = target_name.lower()
-    return " | " in target_name or any(keyword in lowered for keyword in CS2_INTENT_KEYWORDS)
-
 
 def select_spec_collection(target_name: str, requested_collection: str | None) -> str:
     """Choose the local specification collection for a pipeline target."""
     if requested_collection:
         return requested_collection
-    return "cs2" if detect_cs2_intent(target_name) else "core_3d"
+    return "core_3d"
 def search_local_specs(
     target_name: str,
     collection: str,
@@ -174,9 +162,8 @@ def make_payload(
 ) -> PreSpecPayload:
     assessment = make_pre_spec_assessment(target_name)
     contract = make_quality_contract()
-    is_cs2 = is_cs2 or detect_cs2_intent(target_name)
     if is_cs2:
-        assessment["objectClass"]["cs2"] = True
+        assessment["objectClass"]["domain"] = CS2_DOMAIN_ID
     assessment["sourceImage"] = image or ""
     assessment["complexity"]["tier"] = complexity
     assessment["specDepthDecision"]["requiredDepth"] = complexity
@@ -288,7 +275,7 @@ def main(argv: list[str]) -> int:
     )
     args = parser.parse_args(argv)
 
-    is_cs2 = args.cs2 or detect_cs2_intent(args.target_name)
+    is_cs2 = args.cs2
     complexity = args.complexity or ("ultra-complex" if is_cs2 else "moderate")
     manifest = None
     if args.manifest:
