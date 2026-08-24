@@ -3,10 +3,15 @@ from __future__ import annotations
 import json
 import os
 import shlex
+import sys
 import tempfile
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Final
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from domains import DomainRegistryError, domain_profile  # noqa: E402
 
 
 SCHEMA_VERSION: Final = 1
@@ -38,23 +43,6 @@ SETUP_STEPS: Final = (
     ("strict-validation", "python3 forge/stage2_spec/validate_sculpt_spec.py {spec} --strict-quality"),
 )
 
-CHARACTER_STEPS: Final = (
-    (
-        "character-contract-read",
-        "Read grimoire/character/reconstruction.md and grimoire/character/likeness_maximization.md completely",
-    ),
-    (
-        "character-landmarks",
-        "python3 forge/stage1_intake/extract_landmarks.py {reference} --out anatomy.json --overlay landmarks.png",
-    ),
-)
-
-CS2_STEPS: Final = (
-    ("cs2-contract-read", "Read grimoire/intake/cs2_intake_contract.md completely"),
-    ("cs2-authoritative-classification", "Obtain an authoritative CS2 family/subtype classification record"),
-    ("cs2-manifest", "python3 forge/stage1_intake/cs2_manifest.py {reference} --classification classification.json --out cs2-intake.json"),
-)
-
 PASS_STEPS: Final = (
     ("build-current-pass", "python3 forge/stage3_build/generate_threejs_factory.py {spec} --out src/createObjectModel.ts --pass-id {pass_id}"),
     ("render-capture", "Render {pass_id} and capture the fixed review view plus meaningful orbit views"),
@@ -66,13 +54,6 @@ PASS_STEPS: Final = (
     ("pipeline-sync", "python3 forge/stage3_build/orchestrate_passes.py sync {spec} --in-place"),
 )
 
-CS2_PASS_STEPS: Final = (
-    (
-        "cs2-review",
-        "python3 forge/stage4_review/cs2_review.py --manifest cs2-intake.json --metrics cs2-review-inputs.json --scene forge/tests/fixtures/knife_review_scene.json --out cs2-review.json",
-    ),
-)
-
 FINAL_STEPS: Final = (
     ("part-coverage", "python3 forge/stage4_review/check_part_coverage.py --spec {spec} --manifest parts.json"),
     ("action-ready", "Verify explodable/clickable hierarchy, pivots, sockets, and root.userData.sculptRuntime"),
@@ -81,6 +62,29 @@ FINAL_STEPS: Final = (
 
 class WorkflowStateError(ValueError):
     pass
+
+
+def _anchor_index(rows: list[Any], anchor: str, profile: str, key) -> int:
+    for index, row in enumerate(rows):
+        if key(row) == anchor:
+            return index
+    # An unknown anchor is a contribution the base cannot place. Failing loud beats appending at the
+    # end, which would put a domain's setup step after the steps that depend on it.
+    raise WorkflowStateError(f"profile {profile!r} anchors a step before unknown base step {anchor!r}")
+
+
+def _splice(rows: list[dict[str, Any]], steps, anchor: str | None, profile: str, *, scope: str) -> list[dict[str, Any]]:
+    if not steps:
+        return rows
+    at = _anchor_index(rows, anchor, profile, lambda r: r["id"])
+    return rows[:at] + [_step(*item, scope=scope) for item in steps] + rows[at:]
+
+
+def _splice_raw(rows: list[Any], steps, anchor: str | None, profile: str) -> list[Any]:
+    if not steps:
+        return rows
+    at = _anchor_index(rows, anchor, profile, lambda r: r[0])
+    return rows[:at] + list(steps) + rows[at:]
 
 
 def _step(step_id: str, command: str, *, scope: str) -> dict[str, Any]:
@@ -102,20 +106,18 @@ def new_state(
     max_per_pass: int = 3,
     max_total: int = 6,
 ) -> dict[str, Any]:
-    if profile not in {"generic", "cs2", "character"}:
-        raise WorkflowStateError("profile must be generic, cs2, or character")
+    try:
+        domain = domain_profile(profile)
+    except DomainRegistryError as exc:
+        raise WorkflowStateError(str(exc)) from exc
     if max_per_pass < 1 or max_total < 1 or max_per_pass > max_total:
         raise WorkflowStateError("loop limits require 1 <= max-per-pass <= max-total")
+
     setup = [_step(*item, scope="setup") for item in SETUP_STEPS]
-    insertion = next(index for index, item in enumerate(setup) if item["id"] == "local-spec-search")
-    if profile == "cs2":
-        setup[insertion:insertion] = [_step(*item, scope="setup") for item in CS2_STEPS]
-    elif profile == "character":
-        setup[insertion:insertion] = [_step(*item, scope="setup") for item in CHARACTER_STEPS]
     pass_steps = list(PASS_STEPS)
-    if profile == "cs2":
-        review_index = next(index for index, item in enumerate(pass_steps) if item[0] == "ai-review-recorded")
-        pass_steps[review_index:review_index] = list(CS2_PASS_STEPS)
+    if domain is not None:
+        setup = _splice(setup, domain.get("setupSteps"), domain.get("setupAnchorBefore"), profile, scope="setup")
+        pass_steps = _splice_raw(pass_steps, domain.get("passSteps"), domain.get("passAnchorBefore"), profile)
     state = {
         "schemaVersion": SCHEMA_VERSION,
         "status": "active",
@@ -146,8 +148,12 @@ def validate_state(state: Any) -> dict[str, Any]:
         raise WorkflowStateError("state must be a JSON object")
     if state.get("schemaVersion") != SCHEMA_VERSION:
         raise WorkflowStateError(f"unsupported state schemaVersion: {state.get('schemaVersion')!r}")
-    if state.get("profile") not in {"generic", "cs2", "character"}:
-        raise WorkflowStateError("state profile is invalid")
+    # A state file written before its domain moved out must fail by naming the missing provider,
+    # never by silently downgrading the run to generic.
+    try:
+        domain_profile(state.get("profile"))
+    except DomainRegistryError as exc:
+        raise WorkflowStateError(str(exc)) from exc
     checklist = state.get("checklist")
     if not isinstance(checklist, list) or not checklist:
         raise WorkflowStateError("state checklist must be a non-empty list")
