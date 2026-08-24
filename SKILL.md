@@ -69,7 +69,9 @@ python3 forge/state.py mark <step-id> --state .img2threejs/state.json --evidence
 - Every completed step needs evidence; mark a non-applicable step `skipped` only with `--reason` —
   silent omission is forbidden. Loop counts derive from `reviewHistory` actions
   (`refine-spec`/`refine-code`), not agent memory. Defaults: 3 corrections per pass, 6 total.
-- Profiles add mandatory gates without changing the core order: `cs2` requires classification,
+- A domain profile's steps, gates and reference material come from its **installed plugin**, not
+  from this checkout; with no plugin installed only `generic` is available and `forge/state.py init`
+  names what is. Profiles add mandatory gates without changing the core order: `cs2` requires classification,
   manifest, and a machine-readable CS2 review before AI review; `character` requires the character
   contracts and landmark evidence. Every profile records suitability, projection applicability, and
   material-evidence applicability. The state file is a resumability index, not visual evidence:
@@ -106,7 +108,7 @@ Full flags: `grimoire/scripts.md`. Never let a script *score* visuals — that i
     domain-specific query.
 1b. **CS2 intake manifest** — for a CS2 request, create and validate `cs2-intake.json` before
     pre-spec authoring (admission, heuristic signal, classification, family/route resolution).
-    MUST read `grimoire/intake/cs2_intake_contract.md` completely before creating the manifest or
+    MUST read the CS2 plugin's `cs2_intake_contract.md` completely before creating the manifest or
     running pre-spec assessment.
 1c. **Optional fidelity evidence adapters** — only when they improve an observed weak point; the
     stdlib core remains authoritative. Thin/complex masks → local SAM2; character face/pose →
@@ -124,8 +126,8 @@ Full flags: `grimoire/scripts.md`. Never let a script *score* visuals — that i
    (`targetMinDetails` 16, floor 9) — the finish/wear/hardware is the item, so CS2 is held to the
    top fidelity bar. Author procedural GEOMETRY but route the FINISH through the projection path in
    step 2c — a procedural finish for a patterned skin (Doppler/Gamma/Marble/Fade) reads visibly
-   wrong against the reference. Finish routes + rulebook: `grimoire/build/cs2_finishes.md`;
-   optional exact-texture acquisition: `grimoire/intake/cs2_texture_acquisition.md`.
+   wrong against the reference. Finish routes + rulebook: the CS2 plugin's `grimoire/build/cs2_finishes.md`;
+   optional exact-texture acquisition: its `grimoire/intake/cs2_texture_acquisition.md`.
 2b. **Detail inventory** (do not skip for detailed subjects) — scan zones and enumerate every
    identity-defining small detail (gloss, bevel, fasteners, linework, contours, stains):
    `forge/stage1_intake/build_detail_inventory.py <image> --mode grid-3x3 --out-dir <dir> --out di.json`.
@@ -225,10 +227,10 @@ Full flags: `grimoire/scripts.md`. Never let a script *score* visuals — that i
 10. Record the review (overall + per-layer + per-feature scores + decision):
     `forge/stage4_review/append_review.py object-sculpt-spec.json --pass-id <pass> --fidelity <0-1> --action <continue|refine-spec|refine-code|request-input|stop> --summary "..." --render-screenshot <shot> --comparison-image cmp.png --ai-vision-score <0-1> --layer-scores-json '{...}' --feature-reviews-json <f.json> --in-place`.
     For the CS2 family path, produce the versioned report first with
-    `forge/stage4_review/cs2_review.py --manifest cs2-intake.json --metrics cs2-review-inputs.json --scene forge/tests/fixtures/knife_review_scene.json --out cs2-review.json`
+    the CS2 plugin's `tools/cs2_review.py --manifest cs2-intake.json --metrics cs2-review-inputs.json --scene forge/tests/fixtures/knife_review_scene.json --out cs2-review.json`
     and attach it with `--cs2-review-json cs2-review.json --review-scene-json forge/tests/fixtures/knife_review_scene.json`.
     A failed family, painted-region, projection-coverage, critical-detail, or orbit gate blocks
-    `continue` even when the global score passes. See `docs/cs2/review-gates.md`.
+    `continue` even when the global score passes. See the CS2 plugin's `docs/cs2/review-gates.md`.
 11. Sync pipeline state after manual review edits, record checklist evidence, then re-run the local
     state gate before another correction or pass:
     `forge/stage3_build/orchestrate_passes.py sync object-sculpt-spec.json --in-place`
@@ -359,7 +361,7 @@ with `unsupported-family` or `unsupported-subtype`; they must not receive anothe
 tree as a generic fallback.
 
 The full layer contract (what each layer owns, must emit, and must never decide alone), the CS2
-intake order, and the surface/review rule live in `grimoire/intake/cs2_intake_contract.md` — step
+intake order, and the surface/review rule live in the CS2 plugin's `cs2_intake_contract.md` — step
 1b already requires reading it completely before intake state can advance. The canonical hand-off
 is `cs2-intake.json` (`schemaVersion: 1`, states `proceed | request-input | fallback | rejected |
 unsupported-family | unsupported-subtype`); write it atomically, preserve unknown provider fields

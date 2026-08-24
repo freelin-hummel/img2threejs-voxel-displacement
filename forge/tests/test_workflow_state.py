@@ -365,7 +365,7 @@ class WorkflowStateTest(unittest.TestCase):
     def test_skill_router_keeps_mandatory_state_and_reference_gates_visible(self):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("forge/next.py --state .img2threejs/state.json", skill)
-        self.assertIn("MUST read `grimoire/intake/cs2_intake_contract.md` completely", skill)
+        self.assertIn("MUST read the CS2 plugin's `cs2_intake_contract.md` completely", skill)
         self.assertIn("MUST read\n   `grimoire/review/gates_reference.md`", skill)
         self.assertIn("forge/stage4_review/diagnose_render.py", skill)
         self.assertIn("forge/stage4_review/diagnose_render_multi_angle.py", skill)
@@ -373,7 +373,8 @@ class WorkflowStateTest(unittest.TestCase):
 
     def test_all_direct_router_references_exist(self):
         for relative in (
-            "grimoire/intake/cs2_intake_contract.md",
+            # cs2_intake_contract.md is deliberately absent: it ships with the CS2 domain plugin,
+            # so a base checkout must NOT be expected to hold it.
             "grimoire/intake/local_spec_search.md",
             "grimoire/review/gates_reference.md",
             "grimoire/review/self_correction.md",

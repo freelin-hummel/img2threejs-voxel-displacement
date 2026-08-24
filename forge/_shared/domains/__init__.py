@@ -21,6 +21,8 @@ Optional keys, each defaulting to "contributes nothing":
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
 from pathlib import Path
 from typing import Any, Final
 
@@ -67,8 +69,21 @@ def _validate(entry: Any, source: Path) -> dict[str, Any]:
 
 
 def registered_domains() -> dict[str, dict[str, Any]]:
-    """Every domain profile available to this checkout, keyed by id."""
+    """Every domain profile available to this run, keyed by id.
+
+    Two sources, treated identically once loaded: modules in this package (in-repo domains) and
+    `domain.json` in each installed plugin. A domain that moves from the first to the second changes
+    nothing for the base pipeline -- that equivalence is the point of the registry.
+    """
     found: dict[str, dict[str, Any]] = {}
+
+    def claim(entry: Any, source: Path) -> None:
+        entry = _validate(entry, source)
+        if entry["id"] in found:
+            # Two providers claiming one id is ambiguous; the base must not pick one.
+            raise DomainRegistryError(f"domain id {entry['id']!r} is declared twice")
+        found[entry["id"]] = entry
+
     for path in sorted(_PACKAGE_DIR.glob("*.py")):
         if path.name == "__init__.py":
             continue
@@ -76,12 +91,56 @@ def registered_domains() -> dict[str, dict[str, Any]]:
         entry = getattr(module, "DOMAIN", None)
         if entry is None:
             raise DomainRegistryError(f"{path.name}: a domain module must declare DOMAIN")
-        entry = _validate(entry, path)
-        if entry["id"] in found:
-            # Two providers claiming one id is ambiguous; the base must not pick one.
-            raise DomainRegistryError(f"domain id {entry['id']!r} is declared twice")
-        found[entry["id"]] = entry
+        claim(entry, path)
+
+    for path, entry in _installed_plugin_domains():
+        claim(entry, path)
+
     return found
+
+
+def _img2_home() -> Path:
+    return Path(os.environ.get("IMG2_HOME") or Path.home() / ".img2")
+
+
+def _installed_plugin_domains() -> list[tuple[Path, Any]]:
+    """Domain declarations from installed plugins.
+
+    Reads the harness registry rather than globbing the plugins directory, so a checkout left behind
+    by a removed plugin does not silently contribute steps. A plugin that ships no `domain.json`
+    simply contributes no domain -- it may still provide capabilities.
+    """
+    registry = _img2_home() / "plugins.json"
+    if not registry.is_file():
+        return []
+    try:
+        rows = json.loads(registry.read_text(encoding="utf-8")).get("plugins") or []
+    except (OSError, json.JSONDecodeError) as exc:
+        raise DomainRegistryError(f"cannot read the plugin registry at {registry}: {exc}") from exc
+
+    out: list[tuple[Path, Any]] = []
+    for row in rows:
+        plugin_id = (row or {}).get("id")
+        if not plugin_id:
+            continue
+        declaration = _img2_home() / "plugins" / plugin_id / "domain.json"
+        if not declaration.is_file():
+            continue
+        try:
+            entry = json.loads(declaration.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise DomainRegistryError(f"cannot read {declaration}: {exc}") from exc
+        # Steps arrive as JSON arrays; the splice unpacks them as (id, command) pairs. {plugin_dir}
+        # is resolved here, the same substitution the harness performs, so a checklist command a
+        # plugin supplied is runnable from the workspace without the caller knowing where it lives.
+        plugin_dir = str(declaration.parent)
+        for key in ("setupSteps", "passSteps"):
+            if key in entry:
+                entry[key] = tuple(
+                    (step_id, command.replace("{plugin_dir}", plugin_dir)) for step_id, command in entry[key]
+                )
+        out.append((declaration, entry))
+    return out
 
 
 def domain_profile(profile: str) -> dict[str, Any] | None:

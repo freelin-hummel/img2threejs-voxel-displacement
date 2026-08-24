@@ -55,9 +55,10 @@ REQUIRED_STRING_FIELDS = (
     "observation_status",
 )
 REQUIRED_LIST_FIELDS = ("aliases", "constraints", "measurements", "source_refs", "evidence_refs", "assumptions")
+# cs2.jsonl moved to the CS2 domain plugin, which asserts its own records. A base checkout holds
+# only the generic corpus.
 DISTILLED_RECORD_PATHS = (
     ROOT / "docs/specs/vocabulary/core_3d.jsonl",
-    ROOT / "docs/specs/vocabulary/cs2.jsonl",
 )
 DISTILLED_RECORD_FIELDS = frozenset((*REQUIRED_STRING_FIELDS, *REQUIRED_LIST_FIELDS, "confidence"))
 
@@ -361,16 +362,16 @@ class DistilledRecordTest(unittest.TestCase):
     def test_reviewed_bilingual_records_are_complete_and_source_backed(self):
         records_by_path = {path: load_contract_fixture(path) for path in DISTILLED_RECORD_PATHS}
         core_records = records_by_path[DISTILLED_RECORD_PATHS[0]]
-        cs2_records = records_by_path[DISTILLED_RECORD_PATHS[1]]
         all_records = [record for records in records_by_path.values() for record in records]
 
         self.assertGreaterEqual(len(core_records), 12)
-        self.assertGreaterEqual(len(cs2_records), 8)
         self.assertEqual(len({record["record_id"] for record in all_records}), len(all_records))
         self.assertTrue(all(set(record) <= DISTILLED_RECORD_FIELDS for record in all_records))
         self.assertTrue(all(record["source_refs"] for record in all_records))
 
         aliases = {alias.casefold() for record in all_records for alias in record["aliases"]}
+        # Karambit anatomy (safety ring, pommel) and the wear pair live in the CS2 corpus, which the
+        # plugin now owns and asserts. Everything below is in the generic corpus, verified against it.
         self.assertTrue(
             {
                 "socket",
@@ -379,12 +380,6 @@ class DistilledRecordTest(unittest.TestCase):
                 "điểm xoay",
                 "roughness",
                 "độ thô",
-                "wear",
-                "hao mòn",
-                "safety ring",
-                "vòng ngón",
-                "pommel",
-                "chuôi cuối",
                 "attachment",
                 "gắn kết",
             }.issubset(aliases)
@@ -397,10 +392,6 @@ class DistilledRecordTest(unittest.TestCase):
                 "grimoire/readiness/action_rigging.md",
                 "grimoire/readiness/joint_attachment.md",
                 "grimoire/intake/image_analysis.md",
-                "docs/cs2/3D_Technical_Mapping.json",
-                "docs/cs2/3D_Vocabulary_CS2.json",
-                "docs/cs2/distill.md",
-                "docs/cs2-anatomy/knives.md",
             }.issubset(source_paths)
         )
 
@@ -446,15 +437,6 @@ class TokenizerTest(unittest.TestCase):
 
 
 class SourceIngestionTest(unittest.TestCase):
-    def test_profile_loader_exposes_cs2_cache_and_documentation(self):
-        profile = load_profiles()["cs2"]
-
-        self.assertEqual(profile["cache"], ".cache/spec-search/cs2.json")
-        self.assertEqual(profile["documentation"], "docs/specs/vocabulary/README.md")
-        self.assertEqual(profile["encoding"], "utf-8")
-        self.assertEqual(profile["source_roots"], [])
-        self.assertEqual(profile["optional_source_roots"], ["docs/cs2/", "docs/cs2-anatomy/"])
-
     def test_profile_loader_rejects_malformed_and_unknown_collections(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             malformed_profile = Path(temporary_directory) / "profiles.json"

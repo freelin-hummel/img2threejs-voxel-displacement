@@ -82,19 +82,18 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(spec["schemaVersion"], "2.1")
         self.assertEqual(spec["targetName"], "Oak")
 
-    def test_cs2_assessment_embeds_local_spec_search_results(self):
+    def test_assessment_embeds_local_spec_search_results(self):
         r = run(
             "stage2_spec/new_pre_spec_assessment.py",
             "Karambit Fade",
-            "--collection",
-            "cs2",
             "--out",
             self.assessment,
         )
         self.assertEqual(r.returncode, 0, r.stderr)
         assessment = json.loads(self.assessment.read_text())
         search = assessment["localSpecSearch"]
-        self.assertEqual(search["collection"], "cs2")
+        # The cs2 collection ships with the CS2 plugin; a base checkout searches the generic one.
+        self.assertEqual(search["collection"], "core_3d")
         self.assertEqual(search["query"], "Karambit Fade")
         self.assertGreater(len(search["matches"]), 0)
         self.assertTrue(search["matches"][0]["source_refs"])
@@ -110,7 +109,7 @@ class PipelineTest(unittest.TestCase):
         )
         self.assertEqual(r.returncode, 0, r.stderr)
         spec = json.loads(self.spec.read_text())
-        self.assertEqual(spec["localSpecSearch"]["collection"], "cs2")
+        self.assertEqual(spec["localSpecSearch"]["collection"], "core_3d")
         self.assertTrue(spec["localSpecSearch"]["matches"])
 
     def test_generic_assessment_uses_generic_spec_collection(self):
