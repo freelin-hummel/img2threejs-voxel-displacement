@@ -69,3 +69,4 @@ docs/prompts/
 # session ids, which must never reach the public skill.
 docs/WS_*_HANDOVER_*.md
 docs/PR_DISTILLED.md
+_img2_local.py
