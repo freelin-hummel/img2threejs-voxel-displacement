@@ -35,7 +35,9 @@ SETUP_STEPS: Final = (
         "projection-route",
         "Record whether projection is required; if required run solve_camera_pose.py, delight_albedo.py, and bake_projected_texture.py, otherwise skip with a reason",
     ),
-    ("spec-authoring", "python3 forge/stage2_spec/new_sculpt_spec.py \"<name>\" --image {reference} --assessment assessment.json --out object-sculpt-spec.json"),
+    ("spec-authoring",
+     "python3 forge/stage2_spec/new_sculpt_spec.py \"<name>\" --image {reference} --assessment assessment.json"
+     " --augmentation spec-augmentation.json --domain {profile} --out object-sculpt-spec.json"),
     (
         "material-evidence",
         "python3 forge/stage1_intake/material_region_analysis.py --manifest material-regions.json --out-dir material-evidence --out material-analysis.json"
@@ -115,7 +117,7 @@ def new_state(
     if max_per_pass < 1 or max_total < 1 or max_per_pass > max_total:
         raise WorkflowStateError("loop limits require 1 <= max-per-pass <= max-total")
 
-    setup = [_step(*item, scope="setup") for item in SETUP_STEPS]
+    setup = [_step(sid, cmd.replace("{profile}", profile), scope="setup") for sid, cmd in SETUP_STEPS]
     pass_steps = list(PASS_STEPS)
     if domain is not None:
         setup = _splice(setup, domain.get("setupSteps"), domain.get("setupAnchorBefore"), profile, scope="setup")

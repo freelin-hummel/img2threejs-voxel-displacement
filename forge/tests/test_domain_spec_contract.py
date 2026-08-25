@@ -1,10 +1,12 @@
-"""Base-side behaviour that a domain plugin's intake feeds into.
+"""The base's side of the domain contract: pulling a domain's spec augmentation.
 
-These two assertions used to live in forge/tests/test_cs2_foundation.py, which moved to the CS2
-plugin. They stayed behind because they exercise *base* code -- `apply_cs2_template`,
-`apply_cs2_manifest_evidence` and `validate_cs2_contract` are still in this checkout, pending the
-raise-only spec-augmentation artifact that will let them leave. Fixtures are inline dicts rather than
-built by the plugin's `cs2_foundation`, so this suite needs nothing from the plugin.
+The base authors a skeleton and lets the agent infer the shape from the reference. An installed
+domain plugin publishes an authoritative recipe as a workspace artifact, and the base merges it here.
+These tests pin the base's rules for that merge; the recipe itself belongs to whichever plugin
+publishes it, and is tested there.
+
+The rule that matters most is raise-only. A plugin is installed to raise the bar, so the merge must
+make it structurally unable to lower one.
 """
 
 from __future__ import annotations
@@ -15,64 +17,89 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "_shared"))
-sys.path.insert(0, str(ROOT / "stage2_spec"))
 
-from new_pre_spec_assessment import make_payload  # noqa: E402
-from new_sculpt_spec import apply_cs2_manifest_evidence, apply_cs2_template, make_spec  # noqa: E402
-from validate_sculpt_spec import validate_cs2_contract  # noqa: E402
-
-# Shaped like a manifest an installed domain plugin publishes. Inline on purpose: the base must be
-# testable without the plugin that normally produces this.
-MANIFEST = {
-    "schemaVersion": 1,
-    "state": "proceed",
-    "exactnessTier": "image-only",
-    "route": "reference-projection",
-    "identity": {"family": "knife", "subtype": "talon"},
-    "sourceViews": [{"viewpoint": "reference", "hash": 1234567890, "width": 128, "height": 128}],
-    "admission": {"admitted": True, "reasons": []},
-    "warnings": [],
-}
+from spec_augmentation import SpecAugmentationError, merge_spec_augmentation  # noqa: E402
 
 
-class DomainEvidenceReachesTheSpec(unittest.TestCase):
-    def test_manifest_evidence_reaches_the_assessment_and_the_spec(self) -> None:
-        payload = make_payload("Talon Doppler", "ref.png", "ultra-complex", True, MANIFEST, False)
-        assessment = payload["preSpecAssessment"]
-        self.assertEqual(assessment["objectClass"]["domain"], "cs2")
-
-        spec = make_spec("Talon Doppler", "ref.png", payload)
-        apply_cs2_template(spec)
-        apply_cs2_manifest_evidence(spec, MANIFEST)
-        contract = spec.get("qualityContract", {})
-        # The domain raises the base's floors. Slice 4 moves this to a pulled artifact with a
-        # raise-only merge; until then it is an in-repo post-processor and this pins its effect.
-        self.assertEqual(contract.get("qualityBar"), "ultra-complex")
-        self.assertEqual(spec["preSpecAssessment"]["detailInventory"]["targetMinDetails"], 16)
+def artifact(**parts):
+    base = {"kind": "spec-augmentation-v1", "provenance": {"provider": "testdomain", "version": "1.0.0"}}
+    base.update(parts)
+    return base
 
 
-class DomainContractValidation(unittest.TestCase):
-    def test_validator_rejects_an_invalid_exactness_and_route_pair(self) -> None:
-        spec = {
-            "cs2Intake": {
-                "schemaVersion": 1,
-                "state": "proceed",
-                "exactnessTier": "exact-texture",
-                "route": "procedural-approximation",
-                "sourceViews": [],
-                "admission": {"admitted": True},
-                "warnings": [],
-            }
-        }
-        errors: list[str] = []
-        validate_cs2_contract(spec, errors, [])
-        self.assertTrue(errors, "an exact-texture tier on a procedural route must be refused")
+class RaiseOnly(unittest.TestCase):
+    """A plugin may raise a floor and may never lower one."""
 
-    def test_a_spec_with_no_domain_intake_is_left_alone(self) -> None:
-        # The guard clause that keeps this validator off every generic run.
-        errors: list[str] = []
-        validate_cs2_contract({"preSpecAssessment": {}}, errors, [])
-        self.assertEqual(errors, [])
+    def test_a_lower_numeric_floor_is_clamped_not_applied(self) -> None:
+        spec = {"qualityContract": {"minimumSpecDepth": {"macroComponents": 8}}}
+        record = merge_spec_augmentation(spec, artifact(qualityFloors={"minimumSpecDepth": {"macroComponents": 5}}))
+        self.assertEqual(spec["qualityContract"]["minimumSpecDepth"]["macroComponents"], 8)
+        self.assertTrue(record["clamped"], "a clamped floor must be recorded, not silently applied")
+
+    def test_a_lower_target_min_details_is_clamped(self) -> None:
+        spec = {"preSpecAssessment": {"detailInventory": {"targetMinDetails": 20}}}
+        merge_spec_augmentation(spec, artifact(qualityFloors={"targetMinDetails": 16}))
+        self.assertEqual(spec["preSpecAssessment"]["detailInventory"]["targetMinDetails"], 20)
+
+    def test_a_looser_quality_tier_is_refused(self) -> None:
+        spec = {"qualityContract": {"qualityBar": "complex"}}
+        merge_spec_augmentation(spec, artifact(qualityFloors={"qualityBar": "moderate"}))
+        self.assertEqual(spec["qualityContract"]["qualityBar"], "complex")
+
+    def test_raising_is_allowed(self) -> None:
+        spec = {"qualityContract": {"qualityBar": "moderate", "minimumSpecDepth": {"macroComponents": 2}}}
+        merge_spec_augmentation(spec, artifact(qualityFloors={
+            "qualityBar": "ultra-complex", "minimumSpecDepth": {"macroComponents": 5}}))
+        self.assertEqual(spec["qualityContract"]["qualityBar"], "ultra-complex")
+        self.assertEqual(spec["qualityContract"]["minimumSpecDepth"]["macroComponents"], 5)
+
+
+class WhatAnArtifactMayNotDo(unittest.TestCase):
+    def test_it_may_not_set_a_base_owned_section(self) -> None:
+        with self.assertRaises(SpecAugmentationError) as ctx:
+            merge_spec_augmentation({}, artifact(specSections={"qualityContract": {"qualityBar": "simple"}}))
+        self.assertIn("base-owned", str(ctx.exception))
+
+    def test_it_may_not_set_the_resolved_domain_marker(self) -> None:
+        # The marker records which provider the base resolved. An artifact claiming it would let a
+        # plugin relabel the run as some other domain.
+        with self.assertRaises(SpecAugmentationError) as ctx:
+            merge_spec_augmentation({}, artifact(assessmentPatch={"objectClass": {"domain": "somewhere-else"}}))
+        self.assertIn("domain resolution", str(ctx.exception))
+
+    def test_an_unknown_partition_is_refused_not_ignored(self) -> None:
+        with self.assertRaises(SpecAugmentationError):
+            merge_spec_augmentation({}, artifact(qualityFlrs={}))
+
+    def test_an_unknown_floor_key_is_refused(self) -> None:
+        with self.assertRaises(SpecAugmentationError):
+            merge_spec_augmentation({}, artifact(qualityFloors={"nope": 1}))
+
+    def test_an_unsupported_artifact_kind_is_refused(self) -> None:
+        with self.assertRaises(SpecAugmentationError):
+            merge_spec_augmentation({}, {"kind": "something-else", "provenance": {"provider": "p", "version": "1"}})
+
+    def test_provenance_is_required(self) -> None:
+        with self.assertRaises(SpecAugmentationError):
+            merge_spec_augmentation({}, {"kind": "spec-augmentation-v1"})
+
+
+class WhatAnArtifactMayDo(unittest.TestCase):
+    def test_domain_sections_are_accepted_opaquely(self) -> None:
+        # The base cannot validate a finish recipe or a rig, and does not try. It only refuses keys
+        # it owns -- a deny-list, so a domain nobody has written yet needs no base change.
+        spec = {}
+        merge_spec_augmentation(spec, artifact(specSections={
+            "componentTree": [{"id": "root"}], "somethingDomainSpecific": {"anything": True}}))
+        self.assertEqual(spec["componentTree"], [{"id": "root"}])
+        self.assertEqual(spec["somethingDomainSpecific"], {"anything": True})
+
+    def test_the_base_records_which_provider_augmented_the_spec(self) -> None:
+        spec = {}
+        merge_spec_augmentation(spec, artifact(specSections={"componentTree": []}), domain_id="testdomain")
+        self.assertEqual(spec["specAugmentation"]["provider"], "testdomain")
+        self.assertEqual(spec["specAugmentation"]["version"], "1.0.0")
+        self.assertEqual(spec["preSpecAssessment"]["objectClass"]["domain"], "testdomain")
 
 
 if __name__ == "__main__":

@@ -94,8 +94,12 @@ class PipelineRoutingTests(unittest.TestCase):
         self.assertEqual(assessment["pipelineRouting"]["track"], "character-v1.5")
         self.assertEqual(spec["pipelineRouting"], assessment["pipelineRouting"])
 
-    def test_weapon_and_character_routing_select_their_own_templates(self) -> None:
-        for kind, expected_component in (("weapon", "blade"), ("character", "head")):
+    def test_routing_selects_a_template_only_where_the_base_owns_one(self) -> None:
+        # The base ships a character template and, deliberately, no weapon template: a weapon with
+        # no domain plugin installed gets the skeleton and the agent infers the shape from the
+        # reference, exactly as any other object does. The CS2 plugin supplies the knife recipe
+        # through a spec-augmentation artifact instead.
+        for kind, expected_component in (("weapon", "root"), ("character", "head")):
             with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
                 assessment_path = Path(directory) / "assessment.json"
                 spec_path = Path(directory) / "spec.json"
@@ -120,25 +124,6 @@ class PipelineRoutingTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 component_ids = {component["id"] for component in json.loads(spec_path.read_text())["componentTree"]}
                 self.assertIn(expected_component, component_ids)
-
-    def test_conflicting_cs2_and_character_flags_do_not_select_a_template(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    str(SKILL_ROOT / "forge/stage2_spec/new_sculpt_spec.py"),
-                    "Target",
-                    "--cs2",
-                    "--character",
-                    "--out",
-                    str(Path(directory) / "spec.json"),
-                ],
-                capture_output=True,
-                text=True,
-            )
-
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("pipeline routing requires input", result.stderr)
 
     def test_validator_rejects_unresolved_or_wrong_template_routing(self) -> None:
         spec = make_spec("Target", None)

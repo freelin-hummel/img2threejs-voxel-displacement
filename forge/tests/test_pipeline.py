@@ -864,28 +864,6 @@ class PipelineTest(unittest.TestCase):
         self.assertIn("createPersonModel", ts)
         self.assertIn('meshes["head"]', ts)
 
-    def test_cs2_anodized_finish_and_environment(self):
-        # Author a Doppler-style (anodized-multicolored) CS2 skin, image-first.
-        run("stage2_spec/new_sculpt_spec.py", "Karambit Doppler", "--cs2",
-            "--finish-style", "anodized-multicolored", "--out", self.spec)
-        spec = json.loads(self.spec.read_text())
-        finish = next(m for m in spec["materials"] if m["id"] == "skin-finish")
-        # view-dependent PBR: high metalness, low roughness, strong environment
-        self.assertGreaterEqual(finish["metalness"]["base"], 0.9)
-        self.assertLessEqual(finish["roughness"]["base"], 0.15)
-        self.assertGreaterEqual(spec["envMapIntensity"], 1.5)
-        self.assertTrue(finish["needsEnvironment"])
-        # authored CS2 seed is no worse than the object baseline: normal validate passes
-        self.assertEqual(run("stage2_spec/validate_sculpt_spec.py", self.spec).returncode, 0)
-        # factory generates and emits the code-generated environment helper
-        out = self.dir / "createCs2Model.ts"
-        r = run("stage3_build/generate_threejs_factory.py", self.spec, "--out", out)
-        self.assertEqual(r.returncode, 0, r.stderr)
-        ts = out.read_text()
-        self.assertIn("Environment", ts)
-        self.assertIn("RoomEnvironment", ts)
-        self.assertIn("PMREMGenerator", ts)
-
     def test_cs2_track_skipped_for_objects(self):
         run("stage2_spec/new_sculpt_spec.py", "Crate", "--out", self.spec)
         spec = json.loads(self.spec.read_text())
@@ -907,52 +885,6 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         payload = json.loads(self.assessment.read_text())
         self.assertEqual(payload["preSpecAssessment"]["objectClass"]["domain"], "cs2")
-
-    def test_cs2_defaults_to_ultra_complex(self):
-        # CS2 is held to the top fidelity bar: --cs2 defaults the tier to ultra-complex
-        # (targetMinDetails 16) in both the assessment and the authored spec. The domain must be
-        # declared -- it is no longer inferred from the target name.
-        r = run("stage2_spec/new_pre_spec_assessment.py", "Karambit | Doppler", "--cs2", "--out", self.assessment)
-        self.assertEqual(r.returncode, 0, r.stderr)
-        pre = json.loads(self.assessment.read_text())["preSpecAssessment"]
-        self.assertEqual(pre["complexity"]["tier"], "ultra-complex")
-        self.assertEqual(pre["detailInventory"]["targetMinDetails"], 16)
-        run("stage2_spec/new_sculpt_spec.py", "Karambit Doppler", "--cs2", "--out", self.spec)
-        spec_pre = json.loads(self.spec.read_text())["preSpecAssessment"]
-        self.assertEqual(spec_pre["complexity"]["tier"], "ultra-complex")
-        self.assertEqual(spec_pre["detailInventory"]["targetMinDetails"], 16)
-        # an explicit lower --complexity still honors the 9 detail floor
-        r2 = run("stage2_spec/new_pre_spec_assessment.py", "Bayonet skin", "--cs2",
-                 "--complexity", "simple", "--out", self.assessment, "--force")
-        self.assertEqual(r2.returncode, 0, r2.stderr)
-        low = json.loads(self.assessment.read_text())["preSpecAssessment"]
-        self.assertEqual(low["detailInventory"]["targetMinDetails"], 9)
-
-    def test_cs2_identity_precedence_flags_conflict(self):
-        # skin name implies anodized-multicolored (Doppler); vision disagrees with patina.
-        run("stage2_spec/new_sculpt_spec.py", "Item", "--cs2", "--skin-name", "Karambit Doppler",
-            "--vision-finish-style", "patina", "--vision-confidence", "0.9", "--out", self.spec)
-        spec = json.loads(self.spec.read_text())
-        self.assertEqual(spec["cs2Finish"]["finishStyle"], "anodized-multicolored")
-        unknowns = spec["preSpecAssessment"]["unknownsToResolveBeforeImplementation"]
-        self.assertTrue(any("conflict" in u.lower() for u in unknowns))
-
-    def test_cs2_float_and_paint_seed_drive_wear_and_placement(self):
-        run("stage2_spec/new_sculpt_spec.py", "Karambit", "--cs2", "--finish-style", "patina",
-            "--float", "0.7", "--paint-seed", "12345", "--out", self.spec)
-        spec = json.loads(self.spec.read_text())
-        finish = next(m for m in spec["materials"] if m["id"] == "skin-finish")
-        self.assertFalse(finish["wear"]["approximated"])
-        self.assertGreater(finish["wear"]["edgeWear"], 0.5)
-        self.assertEqual(finish["patternPlacement"]["paintSeed"], 12345)
-        self.assertFalse(finish["patternPlacement"]["approximated"])
-
-    def test_cs2_view_dependent_finish_blocked_without_environment(self):
-        run("stage2_spec/new_sculpt_spec.py", "Karambit Doppler", "--cs2",
-            "--finish-style", "anodized-multicolored", "--no-environment", "--out", self.spec)
-        r = run("stage2_spec/validate_sculpt_spec.py", self.spec)
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn("environment", r.stdout.lower())
 
     def test_cs2_textures_gitignored_and_never_tracked(self):
         gitignore = (SKILL / ".gitignore").read_text()

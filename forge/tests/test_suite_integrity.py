@@ -30,7 +30,7 @@ TESTS_DIR = Path(__file__).resolve().parent
 # could live on neither side and were rewritten as base-side tests in test_domain_spec_contract.py.
 # The import guard above is what caught test_cs2_foundation going dark mid-move -- reported as a
 # synthetic loader error rather than a quietly smaller suite.
-COLLECTED_FLOOR = 1109
+COLLECTED_FLOOR = 1112
 
 
 REPO_ROOT = TESTS_DIR.parents[1]
