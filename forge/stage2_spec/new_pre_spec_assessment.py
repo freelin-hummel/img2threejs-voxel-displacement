@@ -12,6 +12,7 @@ from typing import Final, TypedDict
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from forge._shared.domains import DomainRegistryError, domain_profile  # noqa: E402
 from forge._shared.spec_search import (  # noqa: E402
     CacheReadError,
     CacheValidationError,
@@ -119,10 +120,23 @@ class PreSpecPayload(PreSpecPayloadRequired, total=False):
 
 
 
-def select_spec_collection(target_name: str, requested_collection: str | None) -> str:
-    """Choose the local specification collection for a pipeline target."""
+def select_spec_collection(requested_collection: str | None, domain: str | None = None) -> str:
+    """Choose the local evidence collection for a run.
+
+    An explicit request wins. Otherwise a resolved domain's own collection is used if it declares
+    one, and the generic corpus if it does not. Never chosen from the target's name -- name
+    similarity is not evidence (PLUGIN_CONTRACT.md section 13), and the old heuristic put anything
+    whose name contained one of seventeen keywords onto a domain corpus.
+    """
     if requested_collection:
         return requested_collection
+    if domain:
+        try:
+            profile = domain_profile(domain)
+        except DomainRegistryError:
+            profile = None
+        if profile and profile.get("specCollection"):
+            return str(profile["specCollection"])
     return "core_3d"
 def search_local_specs(
     target_name: str,
@@ -260,7 +274,13 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--character", action="store_true", help="Use the character-v1.5 authoring track")
     parser.add_argument(
         "--collection",
-        help="Spec-search collection; defaults to cs2 for CS2 targets and core_3d otherwise.",
+        help="Spec-search collection; defaults to the resolved domain's collection, else core_3d. "
+             "Never chosen from the target's name.",
+    )
+    parser.add_argument(
+        "--domain",
+        default=None,
+        help="Resolved domain id; its installed plugin may contribute an evidence collection.",
     )
     parser.add_argument(
         "--spec-query",
@@ -293,7 +313,7 @@ def main(argv: list[str]) -> int:
         manifest,
         args.character,
     )
-    collection = select_spec_collection(args.target_name, args.collection)
+    collection = select_spec_collection(args.collection, args.domain)
     try:
         payload_object["localSpecSearch"] = search_local_specs(
             args.target_name,

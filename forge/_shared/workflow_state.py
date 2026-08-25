@@ -29,7 +29,9 @@ SETUP_STEPS: Final = (
      "python3 forge/stage1_intake/check_reference_admission.py {reference}"
      " --out admission.json --probe-out probe.json"),
     ("local-spec-search", "Run the local evidence search before authoring the assessment"),
-    ("pre-spec-assessment", "python3 forge/stage2_spec/new_pre_spec_assessment.py \"<name>\" --image {reference} --out assessment.json"),
+    ("pre-spec-assessment",
+     "python3 forge/stage2_spec/new_pre_spec_assessment.py \"<name>\" --image {reference}"
+     " --domain {profile} --out assessment.json"),
     ("detail-inventory", "python3 forge/stage1_intake/build_detail_inventory.py {reference} --mode grid-3x3 --out-dir detail-inventory --out di.json"),
     (
         "projection-route",

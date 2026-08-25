@@ -1,0 +1,2580 @@
+{
+  "targetName": "AK-47 Wild Lotus",
+  "targetId": "ak-47-wild-lotus",
+  "schemaVersion": "2.1",
+  "sourceImage": "reference_ak47_wild_lotus_left.png",
+  "referenceCamera": {
+    "solved": true,
+    "fovDegrees": 35.0,
+    "aspect": 1.7778,
+    "orientation": {
+      "yaw": 0.0,
+      "pitch": 0.0,
+      "roll": 0.0
+    },
+    "positionHint": [
+      0.0,
+      0.0,
+      2.5
+    ],
+    "note": "Heuristic default; refine by overlay review."
+  },
+  "suitability": "pass",
+  "scores": {
+    "object_isolation": 3,
+    "silhouette_readability": 3,
+    "depth_inference": 2,
+    "primitive_decomposition": 3,
+    "material_procedurality": 2,
+    "occlusion_risk": 1,
+    "interaction_fit": 2
+  },
+  "silhouette": {
+    "boundingShape": "elongated rectangle, ~8:1 length-to-height",
+    "aspectRatios": [
+      "8:1 length-to-height",
+      "3:1 receiver-to-magazine height"
+    ],
+    "symmetry": "bilateral base weapon, asymmetric pattern",
+    "dominantCurves": [
+      "banana magazine arc",
+      "stock triangular profile",
+      "straight barrel line"
+    ],
+    "negativeSpaces": [
+      "gap between magazine and grip",
+      "trigger guard loop",
+      "gas tube barrel gap"
+    ],
+    "landmarks": [
+      "muzzle tip",
+      "front sight post",
+      "rear sight",
+      "receiver-magazine junction",
+      "stock butt",
+      "trigger guard apex"
+    ]
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "firearm",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "geometric",
+        "mechanical"
+      ],
+      "structureKind": [
+        "rigid-assembly",
+        "multi-component"
+      ],
+      "motionPotential": [
+        "removable-magazine",
+        "bolt-action"
+      ],
+      "materialFamilies": [
+        "painted-metal",
+        "blued-steel",
+        "gold-accent"
+      ],
+      "notes": "CS2 AK-47 with Wild Lotus skin. Both left+right views provided."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 2,
+        "componentCount": 2,
+        "hierarchyDepth": 2,
+        "repetitionDensity": 1,
+        "materialLayerCount": 2,
+        "localDetailDensity": 3,
+        "occlusionRisk": 1,
+        "actionReadinessNeed": 2
+      },
+      "estimatedCounts": {
+        "macroComponents": 6,
+        "mesoComponents": 12,
+        "microFeatureGroups": 5,
+        "materialLayers": 5
+      }
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true
+    }
+  },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "AK-47 silhouette and proportions match reference",
+      "Wild Lotus floral pattern visible via projected texture",
+      "Gold accent stripes, dark metal barrel, and sight hardware present",
+      "Model explodable and clickable"
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 6,
+      "mesoComponents": 5,
+      "microFeatureGroups": 5,
+      "materialLayers": 3,
+      "repetitionSystems": 0,
+      "reviewViewpoints": 2
+    },
+    "featureGroups": [
+      {
+        "id": "silhouette",
+        "name": "AK-47 silhouette and proportions",
+        "required": true,
+        "qualityCriteria": [
+          "Correct 8:1 ratio, curved magazine, triangular stock"
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "generic rifle silhouette",
+          "wrong proportions"
+        ]
+      },
+      {
+        "id": "structure",
+        "name": "Component hierarchy",
+        "required": true,
+        "qualityCriteria": [
+          "6 macro, 12+ meso components separated"
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "merged parts",
+          "shallow hierarchy"
+        ]
+      },
+      {
+        "id": "pattern",
+        "name": "Wild Lotus pattern",
+        "required": true,
+        "qualityCriteria": [
+          "Teal base, red lotus, pink flowers, green vines, gold bands"
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "wrong base color",
+          "missing lotus",
+          "procedural instead of projection"
+        ]
+      }
+    ]
+  },
+  "featureReviewTargets": [
+    {
+      "id": "silhouette",
+      "name": "Overall silhouette and proportion system",
+      "tier": "critical",
+      "passIds": [
+        "blockout"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "root"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ]
+    },
+    {
+      "id": "structure",
+      "name": "Primary identity-defining structure",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "root"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ]
+    },
+    {
+      "id": "material",
+      "name": "Primary reference material and surface response",
+      "tier": "critical",
+      "passIds": [
+        "material-pass"
+      ],
+      "minimumScore": 0.75,
+      "mustPass": true,
+      "componentRefs": [
+        "root"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ]
+    }
+  ],
+  "lookDevTargets": {
+    "qualityPriority": "reference-fidelity",
+    "materialPass": {
+      "albedoPaletteRequired": true,
+      "roughnessVariationRequired": true,
+      "normalOrBumpRequired": true,
+      "localOverridesRequired": true,
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": true,
+        "targetThreshold": 0.7
+      },
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "requiredSurfaceFrequencyBands": [
+        "macro",
+        "meso",
+        "micro"
+      ]
+    },
+    "lightingPass": {
+      "exposure": {
+        "value": 1.0,
+        "intent": "Neutral exposure for material readability"
+      },
+      "toneMapping": {
+        "algorithm": "ACESFilmic",
+        "intent": "Standard filmic response"
+      },
+      "background": {
+        "color": "#1a1a1a",
+        "intent": "Dark neutral background"
+      },
+      "contactShadow": {
+        "enabled": true,
+        "bias": 0.02
+      },
+      "groundShadow": {
+        "enabled": true,
+        "softness": 0.5
+      }
+    }
+  },
+  "selfCorrectLoop": {
+    "enabled": true,
+    "visualAcceptance": {
+      "reviewer": "ai-vision",
+      "threshold": 0.7,
+      "comparisonArtifactRequired": true,
+      "scoringRule": "AI vision must inspect side-by-side reference/render and score 0-1",
+      "featureReviewPolicy": {
+        "enabled": true,
+        "reviewUnit": "semantic-subsystem",
+        "maxCriticalFeaturesPerPass": 5,
+        "maxImportantFeaturesPerPass": 3,
+        "criticalDefaultThreshold": 0.8,
+        "importantAverageThreshold": 0.65
+      }
+    },
+    "allowedActions": [
+      "continue",
+      "refine-spec",
+      "refine-code",
+      "request-input",
+      "stop"
+    ]
+  },
+  "proceduralStrategy": [
+    "Block out macro silhouette first (stock, receiver, handguard, barrel, magazine, grip)",
+    "Add component hierarchy and attachment contracts",
+    "Refine forms with bevels, tapers, bends",
+    "Apply Wild Lotus pattern via projected de-lit reference texture",
+    "Add gold accent materials and dark metal barrel",
+    "Surface detail and lighting pass"
+  ],
+  "sculptPipeline": {
+    "passGateMode": "locked-sequential",
+    "passOrder": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "currentPass": "blockout",
+    "completedPasses": [],
+    "lastCompletedPass": "",
+    "blockedReason": "",
+    "nextRequiredEvidence": [
+      "browser render screenshot from your agent's browser/screenshot tool",
+      "single side-by-side full reference/render comparison sheet",
+      "all critical semantic feature scores at or above their thresholds",
+      "self-correction review appended with action=continue before the next pass"
+    ]
+  },
+  "componentTree": [
+    {
+      "id": "root",
+      "name": "AK-47 Wild Lotus",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.95,
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Root group holding all child components",
+      "geometryDescriptor": {
+        "topologyIntent": "root pivot only",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": null,
+      "attachment": null,
+      "dimensions": {
+        "width": 0.88,
+        "height": 0.22,
+        "depth": 0.06,
+        "units": "meters",
+        "confidence": 0.85
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.6,
+        "roughness": 0.55,
+        "metalness": 0.1
+      },
+      "actionProfile": {
+        "animationRole": "root",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "detach": false,
+          "visibility": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root"
+        }
+      },
+      "material": "wild-lotus-base",
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "stock",
+      "name": "Fixed Stock",
+      "level": "macro",
+      "role": "stock",
+      "importance": 0.9,
+      "confidence": 0.92,
+      "primitive": "extrude",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Extruded triangular profile matching AK fixed stock",
+      "geometryDescriptor": {
+        "topologyIntent": "triangular cross-section extruded along length, slight taper toward butt",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.003,
+          "segments": 2
+        },
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": "receiver-rear",
+        "contactType": "butt-joint",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          -0.05,
+          0,
+          0
+        ],
+        "overlap": 0.01,
+        "gapTolerance": 0.002
+      },
+      "dimensions": {
+        "width": 0.26,
+        "height": 0.14,
+        "depth": 0.045,
+        "units": "meters",
+        "confidence": 0.88
+      },
+      "transform": {
+        "position": [
+          -0.38,
+          -0.01,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.55,
+        "metalness": 0.1
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false,
+          "detach": true
+        },
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "stock"
+        }
+      },
+      "material": "wild-lotus-base",
+      "localFeatures": [
+        {
+          "id": "stock-lily",
+          "type": "decal-area",
+          "description": "Large pink lily flower on stock butt",
+          "placement": "rear-third lateral face",
+          "size": 0.08,
+          "materialEffect": "high-saturation pink",
+          "confidence": 0.95
+        },
+        {
+          "id": "stock-gold-band",
+          "type": "raised-ridge",
+          "description": "Curved gold accent band",
+          "placement": "diagonal across stock",
+          "size": 0.015,
+          "materialEffect": "metallic gold",
+          "confidence": 0.95
+        }
+      ],
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "receiver",
+      "name": "Stamped Receiver",
+      "level": "macro",
+      "role": "receiver",
+      "importance": 1.0,
+      "confidence": 0.95,
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Rectangular stamped metal box, AK core",
+      "geometryDescriptor": {
+        "topologyIntent": "rectangular box with dust cover top, trigger guard below",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.002,
+          "segments": 1
+        },
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": null,
+        "contactType": "core-body",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0,
+          0
+        ],
+        "overlap": 0,
+        "gapTolerance": 0
+      },
+      "dimensions": {
+        "width": 0.22,
+        "height": 0.08,
+        "depth": 0.05,
+        "units": "meters",
+        "confidence": 0.9
+      },
+      "transform": {
+        "position": [
+          -0.08,
+          0.0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.55,
+        "metalness": 0.1
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "sockets": [
+          {
+            "id": "receiver-rear",
+            "position": [
+              -0.11,
+              0,
+              0
+            ],
+            "type": "butt-joint"
+          },
+          {
+            "id": "receiver-front",
+            "position": [
+              0.11,
+              0,
+              0
+            ],
+            "type": "socket"
+          },
+          {
+            "id": "mag-well",
+            "position": [
+              -0.02,
+              -0.05,
+              0
+            ],
+            "type": "insert"
+          },
+          {
+            "id": "grip-socket",
+            "position": [
+              0.02,
+              -0.05,
+              0
+            ],
+            "type": "embed"
+          }
+        ],
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "receiver"
+        }
+      },
+      "material": "wild-lotus-base",
+      "localFeatures": [
+        {
+          "id": "receiver-lotus",
+          "type": "decal-area",
+          "description": "Large red lotus flower",
+          "placement": "center-right receiver face",
+          "size": 0.1,
+          "materialEffect": "high-saturation red",
+          "confidence": 0.98
+        },
+        {
+          "id": "bolt-handle",
+          "type": "raised-ridge",
+          "description": "Charging handle on right side",
+          "placement": "upper-right receiver",
+          "size": 0.02,
+          "materialEffect": "dark metal",
+          "confidence": 0.9
+        }
+      ],
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "handguard",
+      "name": "Handguard Assembly",
+      "level": "macro",
+      "role": "handguard",
+      "importance": 0.85,
+      "confidence": 0.9,
+      "primitive": "cylinder",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Upper/lower handguard halves around barrel",
+      "geometryDescriptor": {
+        "topologyIntent": "two half-cylinders around barrel",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": "receiver-front",
+        "contactType": "socket",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0.08,
+          0,
+          0
+        ],
+        "overlap": 0.01,
+        "gapTolerance": 0.002
+      },
+      "dimensions": {
+        "width": 0.16,
+        "height": 0.05,
+        "depth": 0.045,
+        "units": "meters",
+        "confidence": 0.88
+      },
+      "transform": {
+        "position": [
+          0.16,
+          0.0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.55,
+        "metalness": 0.1
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "cylinder"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "handguard"
+        }
+      },
+      "material": "wild-lotus-base",
+      "localFeatures": [
+        {
+          "id": "handguard-teal",
+          "type": "surface-finish",
+          "description": "Teal paint with floral pattern",
+          "placement": "entire surface",
+          "size": 0.16,
+          "materialEffect": "teal with pink accents",
+          "confidence": 0.9
+        }
+      ],
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "barrel",
+      "name": "Barrel",
+      "level": "macro",
+      "role": "barrel",
+      "importance": 0.85,
+      "confidence": 0.92,
+      "primitive": "cylinder",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Long cylindrical barrel, dark metal",
+      "geometryDescriptor": {
+        "topologyIntent": "straight cylinder forward of handguard",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": "receiver-front",
+        "contactType": "socket",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0.38,
+          0,
+          0
+        ],
+        "overlap": 0.01,
+        "gapTolerance": 0.002
+      },
+      "dimensions": {
+        "width": 0.38,
+        "height": 0.018,
+        "depth": 0.018,
+        "units": "meters",
+        "confidence": 0.9
+      },
+      "transform": {
+        "position": [
+          0.28,
+          -0.005,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(26, 26, 26, 1)",
+        "secondaryAlbedo": "rgba(42, 42, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.9,
+        "roughness": 0.4,
+        "metalness": 0.9
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "cylinder"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "barrel"
+        }
+      },
+      "material": "dark-metal",
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "magazine",
+      "name": "Curved Banana Magazine",
+      "level": "macro",
+      "role": "magazine",
+      "importance": 0.9,
+      "confidence": 0.93,
+      "primitive": "extrude",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Extruded curved profile, iconic AK banana shape",
+      "geometryDescriptor": {
+        "topologyIntent": "curved rectangular cross-section following banana arc",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.002,
+          "segments": 1
+        },
+        "deformationStack": [
+          {
+            "type": "bend",
+            "axis": "Z",
+            "angle": 25,
+            "falloff": "linear"
+          }
+        ],
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": "mag-well",
+        "contactType": "insert",
+        "localStart": [
+          0,
+          0.09,
+          0
+        ],
+        "localEnd": [
+          0,
+          -0.09,
+          0
+        ],
+        "overlap": 0.015,
+        "gapTolerance": 0.002
+      },
+      "dimensions": {
+        "width": 0.04,
+        "height": 0.18,
+        "depth": 0.025,
+        "units": "meters",
+        "confidence": 0.9
+      },
+      "transform": {
+        "position": [
+          -0.02,
+          -0.1,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          -8
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.55,
+        "metalness": 0.1
+      },
+      "actionProfile": {
+        "animationRole": "detachable",
+        "pivot": {
+          "mode": "top",
+          "localPosition": [
+            0,
+            0.09,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "detach": true
+        },
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "magazine"
+        }
+      },
+      "material": "wild-lotus-base",
+      "localFeatures": [
+        {
+          "id": "mag-gold-band",
+          "type": "raised-ridge",
+          "description": "Curved gold accent stripe",
+          "placement": "center of magazine face",
+          "size": 0.012,
+          "materialEffect": "metallic gold",
+          "confidence": 0.95
+        },
+        {
+          "id": "mag-witness-holes",
+          "type": "hole-or-socket",
+          "description": "Witness holes for round counting",
+          "placement": "left side vertical row",
+          "size": 0.003,
+          "materialEffect": "dark recess",
+          "confidence": 0.85
+        },
+        {
+          "id": "mag-flowers",
+          "type": "decal-area",
+          "description": "Small orange and pink accent flowers",
+          "placement": "lower magazine",
+          "size": 0.04,
+          "materialEffect": "orange/pink accents",
+          "confidence": 0.85
+        }
+      ],
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "grip",
+      "name": "Pistol Grip",
+      "level": "macro",
+      "role": "grip",
+      "importance": 0.8,
+      "confidence": 0.9,
+      "primitive": "cylinder",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Tapered ergonomic cylinder below receiver",
+      "geometryDescriptor": {
+        "topologyIntent": "tapered cylinder with forward angle",
+        "deformationStack": [
+          {
+            "type": "taper",
+            "startRadius": 0.015,
+            "endRadius": 0.018,
+            "axis": "Y"
+          }
+        ],
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "root",
+      "attachment": {
+        "parentSocket": "grip-socket",
+        "contactType": "embed",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          -0.08,
+          0
+        ],
+        "overlap": 0.01,
+        "gapTolerance": 0.002
+      },
+      "dimensions": {
+        "width": 0.03,
+        "height": 0.08,
+        "depth": 0.03,
+        "units": "meters",
+        "confidence": 0.88
+      },
+      "transform": {
+        "position": [
+          0.02,
+          -0.08,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          12
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.55,
+        "metalness": 0.1
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "cylinder"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "grip"
+        }
+      },
+      "material": "wild-lotus-base",
+      "localFeatures": [
+        {
+          "id": "grip-vines",
+          "type": "linework",
+          "description": "Green vine/leaf pattern",
+          "placement": "entire grip face",
+          "size": 0.06,
+          "materialEffect": "dark green overlay",
+          "confidence": 0.85
+        }
+      ],
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "gas-tube",
+      "name": "Gas Tube",
+      "level": "meso",
+      "role": "gas-tube",
+      "importance": 0.7,
+      "confidence": 0.88,
+      "primitive": "cylinder",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Cylindrical gas tube above barrel",
+      "geometryDescriptor": {
+        "topologyIntent": "straight thin cylinder",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "handguard",
+      "attachment": {
+        "parentSocket": "gas-tube-mount",
+        "contactType": "flush",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0.18,
+          0,
+          0
+        ],
+        "overlap": 0.005,
+        "gapTolerance": 0.001
+      },
+      "dimensions": {
+        "width": 0.18,
+        "height": 0.012,
+        "depth": 0.012,
+        "units": "meters",
+        "confidence": 0.85
+      },
+      "transform": {
+        "position": [
+          0,
+          0.025,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(26, 26, 26, 1)",
+        "secondaryAlbedo": "rgba(42, 42, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.85,
+        "roughness": 0.5,
+        "metalness": 0.15
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "cylinder"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "handguard"
+        }
+      },
+      "material": "dark-metal",
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "gas-block",
+      "name": "Gas Block",
+      "level": "meso",
+      "role": "gas-block",
+      "importance": 0.75,
+      "confidence": 0.85,
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Block mounting front sight and gas tube junction",
+      "geometryDescriptor": {
+        "topologyIntent": "block with front sight on top",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "handguard",
+      "attachment": {
+        "parentSocket": "gas-block-mount",
+        "contactType": "mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0.025,
+          0,
+          0
+        ],
+        "overlap": 0.005,
+        "gapTolerance": 0.001
+      },
+      "dimensions": {
+        "width": 0.025,
+        "height": 0.04,
+        "depth": 0.03,
+        "units": "meters",
+        "confidence": 0.85
+      },
+      "transform": {
+        "position": [
+          0.08,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.5,
+        "metalness": 0.15
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "handguard"
+        }
+      },
+      "material": "wild-lotus-base",
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "front-sight",
+      "name": "Front Sight Post",
+      "level": "micro",
+      "role": "sight",
+      "importance": 0.7,
+      "confidence": 0.88,
+      "primitive": "cylinder",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Thin post with protective wing ears",
+      "geometryDescriptor": {
+        "topologyIntent": "thin cylinder post + angled wings",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "gas-block",
+      "attachment": {
+        "parentSocket": "front-sight-base",
+        "contactType": "mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0.03,
+          0
+        ],
+        "overlap": 0.002,
+        "gapTolerance": 0.001
+      },
+      "dimensions": {
+        "width": 0.003,
+        "height": 0.03,
+        "depth": 0.003,
+        "units": "meters",
+        "confidence": 0.85
+      },
+      "transform": {
+        "position": [
+          0,
+          0.02,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.5,
+        "metalness": 0.15
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "handguard"
+        }
+      },
+      "material": "wild-lotus-base",
+      "localFeatures": [
+        {
+          "id": "sight-wings",
+          "type": "raised-ridge",
+          "description": "Protective wings flanking post",
+          "placement": "gas block top",
+          "size": 0.015,
+          "materialEffect": "teal paint",
+          "confidence": 0.85
+        }
+      ],
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "trigger-guard",
+      "name": "Trigger Guard",
+      "level": "meso",
+      "role": "trigger-guard",
+      "importance": 0.7,
+      "confidence": 0.88,
+      "primitive": "tube",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Curved tube forming guard around trigger",
+      "geometryDescriptor": {
+        "topologyIntent": "U-shaped tube below receiver",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "receiver",
+      "attachment": {
+        "parentSocket": "trigger-guard-mount",
+        "contactType": "mount",
+        "localStart": [
+          -0.02,
+          0,
+          0
+        ],
+        "localEnd": [
+          0.02,
+          0,
+          0
+        ],
+        "overlap": 0.005,
+        "gapTolerance": 0.001
+      },
+      "dimensions": {
+        "width": 0.05,
+        "height": 0.03,
+        "depth": 0.015,
+        "units": "meters",
+        "confidence": 0.85
+      },
+      "transform": {
+        "position": [
+          -0.02,
+          -0.04,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(26, 26, 26, 1)",
+        "secondaryAlbedo": "rgba(42, 42, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.8,
+        "roughness": 0.35,
+        "metalness": 0.75
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "receiver"
+        }
+      },
+      "material": "gold-accent",
+      "localFeatures": [
+        {
+          "id": "trigger",
+          "type": "raised-ridge",
+          "description": "Curved trigger",
+          "placement": "center of guard",
+          "size": 0.02,
+          "materialEffect": "gold metallic",
+          "confidence": 0.9
+        }
+      ],
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "dust-cover",
+      "name": "Dust Cover",
+      "level": "meso",
+      "role": "dust-cover",
+      "importance": 0.6,
+      "confidence": 0.8,
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Flat rectangular cover on receiver top",
+      "geometryDescriptor": {
+        "topologyIntent": "thin box on receiver top",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "receiver",
+      "attachment": {
+        "parentSocket": "dust-cover-top",
+        "contactType": "flush",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0.2,
+          0,
+          0
+        ],
+        "overlap": 0.002,
+        "gapTolerance": 0.001
+      },
+      "dimensions": {
+        "width": 0.2,
+        "height": 0.008,
+        "depth": 0.045,
+        "units": "meters",
+        "confidence": 0.8
+      },
+      "transform": {
+        "position": [
+          0,
+          0.044,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(42, 122, 90, 1)",
+        "secondaryAlbedo": "rgba(30, 94, 66, 1)",
+        "materialClass": "plastic",
+        "materialClassConfidence": 0.7,
+        "roughness": 0.55,
+        "metalness": 0.1
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "receiver"
+        }
+      },
+      "material": "wild-lotus-base",
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    },
+    {
+      "id": "rear-sight",
+      "name": "Rear Sight",
+      "level": "meso",
+      "role": "rear-sight",
+      "importance": 0.65,
+      "confidence": 0.78,
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Thin vertical leaf sight on rear receiver",
+      "geometryDescriptor": {
+        "topologyIntent": "thin vertical plate with notch",
+        "uvStrategy": "generated procedural coordinates"
+      },
+      "parent": "receiver",
+      "attachment": {
+        "parentSocket": "rear-sight-base",
+        "contactType": "mount",
+        "localStart": [
+          0,
+          0,
+          0
+        ],
+        "localEnd": [
+          0,
+          0.02,
+          0
+        ],
+        "overlap": 0.002,
+        "gapTolerance": 0.001
+      },
+      "dimensions": {
+        "width": 0.015,
+        "height": 0.02,
+        "depth": 0.003,
+        "units": "meters",
+        "confidence": 0.75
+      },
+      "transform": {
+        "position": [
+          0.06,
+          0.05,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(26, 26, 26, 1)",
+        "secondaryAlbedo": "rgba(42, 42, 42, 1)",
+        "materialClass": "metal",
+        "materialClassConfidence": 0.85,
+        "roughness": 0.4,
+        "metalness": 0.9
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ]
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false
+        },
+        "collider": {
+          "type": "box"
+        },
+        "destruction": {
+          "breakable": true,
+          "fractureGroup": "receiver"
+        }
+      },
+      "material": "dark-metal",
+      "evidenceRefs": [
+        "left-view",
+        "right-view"
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "id": "wild-lotus-base",
+      "name": "Wild Lotus Teal Painted Metal",
+      "type": "standard",
+      "baseColor": "#2A7A5A",
+      "albedo": {
+        "dominant": "#2A7A5A",
+        "secondary": [
+          "#1E5E42",
+          "#3A8A6A"
+        ]
+      },
+      "roughness": {
+        "base": 0.55,
+        "variation": 0.1,
+        "map": {
+          "type": "independent-procedural",
+          "source": "independent procedural roughness field derived from surface finish observation",
+          "pattern": "mottled-field",
+          "amplitude": 0.1,
+          "resolution": 1024,
+          "independent": true
+        }
+      },
+      "metalness": {
+        "base": 0.1,
+        "variation": 0.05
+      },
+      "normal": {
+        "pattern": "stamped-metal-grain",
+        "strength": 0.2,
+        "scale": 16
+      },
+      "localOverrides": [
+        {
+          "region": "all-painted-surfaces",
+          "description": "Wild Lotus floral pattern applied via projection from de-lit reference"
+        }
+      ],
+      "note": "Projection-first route mandatory for this patterned skin.",
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2.0,
+          2.0
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world-scale detail"
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2.0,
+          "amplitude": 0.4,
+          "role": "broad color breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12.0,
+          "amplitude": 0.2,
+          "role": "visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56.0,
+          "amplitude": 0.08,
+          "role": "grazing light breakup"
+        }
+      ],
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35
+      },
+      "referencePbr": {
+        "source": "de-lit reference image projection",
+        "method": "projection from de-lit reference crops",
+        "confidence": 0.71,
+        "usable": true,
+        "note": "De-lighted reference used as projection source; confidence raised to 0.71 by dual-view evidence",
+        "maps": {
+          "albedo": {
+            "path": "delight_albedo.png",
+            "confidence": 0.75,
+            "resolution": 2048,
+            "colorSpace": "sRGB",
+            "source": "de-lit reference projection"
+          },
+          "roughness": {
+            "path": "procedural-roughness-field",
+            "confidence": 0.7,
+            "resolution": 1024,
+            "source": "inferred from surface finish"
+          },
+          "normal": {
+            "path": "procedural-normal-field",
+            "confidence": 0.65,
+            "resolution": 1024,
+            "source": "stamped-metal grain procedural"
+          },
+          "ao": {
+            "path": "procedural-ao-field",
+            "confidence": 0.7,
+            "resolution": 1024,
+            "source": "computed from geometry"
+          },
+          "height": {
+            "path": "procedural-height-field",
+            "confidence": 0.6,
+            "resolution": 1024,
+            "source": "displacement from surface detail"
+          }
+        }
+      }
+    },
+    {
+      "id": "dark-metal",
+      "name": "Dark Blued Steel",
+      "type": "standard",
+      "baseColor": "#1A1A1A",
+      "albedo": {
+        "dominant": "#1A1A1A",
+        "secondary": [
+          "#2A2A2A",
+          "#0F0F0F"
+        ]
+      },
+      "roughness": {
+        "base": 0.4,
+        "variation": 0.08,
+        "map": {
+          "type": "independent-procedural",
+          "source": "independent procedural roughness field derived from surface finish observation",
+          "pattern": "mottled-field",
+          "amplitude": 0.08,
+          "resolution": 1024,
+          "independent": true
+        }
+      },
+      "metalness": {
+        "base": 0.9,
+        "variation": 0.05
+      },
+      "normal": {
+        "pattern": "machined-metal",
+        "strength": 0.15,
+        "scale": 8
+      },
+      "localOverrides": [],
+      "note": "Barrel, gas tube, rear sight. Dark parkerized/blued finish.",
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2.0,
+          2.0
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world-scale detail"
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2.0,
+          "amplitude": 0.4,
+          "role": "broad color breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12.0,
+          "amplitude": 0.2,
+          "role": "visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56.0,
+          "amplitude": 0.08,
+          "role": "grazing light breakup"
+        }
+      ],
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35
+      },
+      "referencePbr": {
+        "source": "de-lit reference image projection",
+        "method": "projection from de-lit reference crops",
+        "confidence": 0.71,
+        "usable": true,
+        "note": "De-lighted reference used as projection source; confidence raised to 0.71 by dual-view evidence",
+        "maps": {
+          "albedo": {
+            "path": "delight_albedo.png",
+            "confidence": 0.75,
+            "resolution": 2048,
+            "colorSpace": "sRGB",
+            "source": "de-lit reference projection"
+          },
+          "roughness": {
+            "path": "procedural-roughness-field",
+            "confidence": 0.7,
+            "resolution": 1024,
+            "source": "inferred from surface finish"
+          },
+          "normal": {
+            "path": "procedural-normal-field",
+            "confidence": 0.65,
+            "resolution": 1024,
+            "source": "stamped-metal grain procedural"
+          },
+          "ao": {
+            "path": "procedural-ao-field",
+            "confidence": 0.7,
+            "resolution": 1024,
+            "source": "computed from geometry"
+          },
+          "height": {
+            "path": "procedural-height-field",
+            "confidence": 0.6,
+            "resolution": 1024,
+            "source": "displacement from surface detail"
+          }
+        }
+      }
+    },
+    {
+      "id": "gold-accent",
+      "name": "Gold/Bronze Metallic Accent",
+      "type": "standard",
+      "baseColor": "#C8944A",
+      "albedo": {
+        "dominant": "#C8944A",
+        "secondary": [
+          "#B8843A",
+          "#D8A45A"
+        ]
+      },
+      "roughness": {
+        "base": 0.35,
+        "variation": 0.08,
+        "map": {
+          "type": "independent-procedural",
+          "source": "independent procedural roughness field derived from surface finish observation",
+          "pattern": "mottled-field",
+          "amplitude": 0.08,
+          "resolution": 1024,
+          "independent": true
+        }
+      },
+      "metalness": {
+        "base": 0.75,
+        "variation": 0.1
+      },
+      "normal": {
+        "pattern": "smooth-metallic",
+        "strength": 0.05,
+        "scale": 4
+      },
+      "localOverrides": [],
+      "note": "Magazine band, stock band, trigger guard, trigger.",
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2.0,
+          2.0
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world-scale detail"
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2.0,
+          "amplitude": 0.4,
+          "role": "broad color breakup"
+        },
+        {
+          "id": "meso",
+          "frequency": 12.0,
+          "amplitude": 0.2,
+          "role": "visible relief"
+        },
+        {
+          "id": "micro",
+          "frequency": 56.0,
+          "amplitude": 0.08,
+          "role": "grazing light breakup"
+        }
+      ],
+      "ambientOcclusion": {
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35
+      },
+      "referencePbr": {
+        "source": "de-lit reference image projection",
+        "method": "projection from de-lit reference crops",
+        "confidence": 0.71,
+        "usable": true,
+        "note": "De-lighted reference used as projection source; confidence raised to 0.71 by dual-view evidence",
+        "maps": {
+          "albedo": {
+            "path": "delight_albedo.png",
+            "confidence": 0.75,
+            "resolution": 2048,
+            "colorSpace": "sRGB",
+            "source": "de-lit reference projection"
+          },
+          "roughness": {
+            "path": "procedural-roughness-field",
+            "confidence": 0.7,
+            "resolution": 1024,
+            "source": "inferred from surface finish"
+          },
+          "normal": {
+            "path": "procedural-normal-field",
+            "confidence": 0.65,
+            "resolution": 1024,
+            "source": "stamped-metal grain procedural"
+          },
+          "ao": {
+            "path": "procedural-ao-field",
+            "confidence": 0.7,
+            "resolution": 1024,
+            "source": "computed from geometry"
+          },
+          "height": {
+            "path": "procedural-height-field",
+            "confidence": 0.6,
+            "resolution": 1024,
+            "source": "displacement from surface detail"
+          }
+        }
+      }
+    }
+  ],
+  "repetitionSystems": [],
+  "buildPasses": [
+    {
+      "id": "blockout",
+      "goal": "Match AK-47 macro silhouette",
+      "componentRefs": [
+        "root",
+        "stock",
+        "receiver",
+        "handguard",
+        "barrel",
+        "magazine",
+        "grip"
+      ]
+    },
+    {
+      "id": "structural-pass",
+      "goal": "Component hierarchy with attachment contracts",
+      "componentRefs": [
+        "root"
+      ]
+    },
+    {
+      "id": "form-refinement",
+      "goal": "Refine shapes, bevels, sight details",
+      "componentRefs": [
+        "root"
+      ]
+    },
+    {
+      "id": "material-pass",
+      "goal": "Wild Lotus pattern via projection, gold accents, dark metal",
+      "componentRefs": [
+        "root"
+      ]
+    },
+    {
+      "id": "surface-pass",
+      "goal": "Surface detail and normal maps",
+      "componentRefs": [
+        "root"
+      ]
+    },
+    {
+      "id": "lighting-pass",
+      "goal": "Neutral lighting for material readability",
+      "componentRefs": [
+        "root"
+      ]
+    },
+    {
+      "id": "interaction-pass",
+      "goal": "Explodable/clickable with pivots",
+      "componentRefs": [
+        "root"
+      ]
+    },
+    {
+      "id": "optimization-pass",
+      "goal": "Triangle budget and performance",
+      "componentRefs": [
+        "root"
+      ]
+    }
+  ],
+  "performanceBudget": {
+    "qualityPriority": "reference-fidelity",
+    "targetTriangles": 120000,
+    "maxDrawCalls": 40,
+    "textureSize": 2048,
+    "fpsTarget": 60
+  },
+  "coordinateFrame": {
+    "front": "camera-facing side",
+    "up": "image up",
+    "scaleReference": "~0.88m total length"
+  },
+  "viewEvidence": [
+    {
+      "id": "left-view",
+      "view": "primary",
+      "imageRegion": {
+        "x": 0,
+        "y": 0,
+        "width": 1,
+        "height": 1
+      },
+      "confidence": 0.95
+    },
+    {
+      "id": "right-view",
+      "view": "secondary",
+      "imageRegion": {
+        "x": 0,
+        "y": 0,
+        "width": 1,
+        "height": 1
+      },
+      "confidence": 0.95
+    }
+  ],
+  "reviewHistory": [
+    {
+      "timestamp": "2026-08-25T05:39:55.386659+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.55,
+      "aiVisionScore": 0.55,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "silhouetteProportion": 0.65,
+        "componentStructure": 0.7,
+        "formDetail": 0.3,
+        "materialSurface": 0.4,
+        "lightingCamera": 0.5
+      },
+      "featureReviews": [
+        {
+          "id": "overall-silhouette",
+          "score": 0.65,
+          "note": "AK-47 shape recognizable but needs refinement"
+        },
+        {
+          "id": "primary-structure",
+          "score": 0.7,
+          "note": "7 components visible"
+        }
+      ],
+      "action": "refine-code",
+      "summary": "Blockout pass: AK-47 silhouette recognizable but score below 0.7 threshold. Issues: stock cropped on left edge, magazine needs more curvature, handguard-barrel gap too wide, proportions need refinement. Proceeding to refine-code.",
+      "matched": [],
+      "mismatches": [],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "mapStrippedRender": "render_blockout_v4.png",
+      "visualEvidence": {
+        "referenceScreenshot": "reference_ak47_wild_lotus_left.png",
+        "renderScreenshot": "render_blockout_v4.png",
+        "comparisonImage": "comparison_blockout_v4.png",
+        "cameraView": "",
+        "notes": "",
+        "aiVisionNotes": ""
+      }
+    },
+    {
+      "timestamp": "2026-08-25T05:43:13.319436+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.6,
+      "aiVisionScore": 0.6,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "silhouetteProportion": 0.7,
+        "componentStructure": 0.75,
+        "formDetail": 0.35,
+        "materialSurface": 0.45,
+        "lightingCamera": 0.5
+      },
+      "featureReviews": [
+        {
+          "id": "overall-silhouette",
+          "score": 0.7,
+          "note": "AK-47 shape recognizable"
+        },
+        {
+          "id": "primary-structure",
+          "score": 0.75,
+          "note": "7 components visible"
+        }
+      ],
+      "action": "refine-code",
+      "summary": "Blockout v5: AK-47 silhouette clearly recognizable but score still below 0.7. Stock needs to be fully in frame. Continuing refinement.",
+      "matched": [],
+      "mismatches": [],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "mapStrippedRender": "render_blockout_v5.png",
+      "visualEvidence": {
+        "referenceScreenshot": "reference_ak47_wild_lotus_left.png",
+        "renderScreenshot": "render_blockout_v5.png",
+        "comparisonImage": "comparison_blockout_v5.png",
+        "cameraView": "",
+        "notes": "",
+        "aiVisionNotes": ""
+      }
+    }
+  ],
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "query": "AK-47 Wild Lotus",
+    "matches": []
+  },
+  "lightingFromPhoto": [
+    {
+      "type": "key",
+      "direction": [
+        0.3,
+        0.5,
+        1.0
+      ],
+      "color": "#FFFFFF",
+      "intensity": 1.0,
+      "note": "Primary key light for material readability"
+    },
+    {
+      "type": "fill",
+      "direction": [
+        -0.5,
+        0.3,
+        0.5
+      ],
+      "color": "#E8E8F0",
+      "intensity": 0.4,
+      "note": "Fill light for shadow softening"
+    },
+    {
+      "type": "rim",
+      "direction": [
+        0,
+        0.2,
+        -1.0
+      ],
+      "color": "#FFFFFF",
+      "intensity": 0.6,
+      "note": "Rim light for silhouette edge"
+    },
+    {
+      "type": "exposure",
+      "value": 1.0,
+      "toneMapping": "ACESFilmic",
+      "note": "Neutral exposure with ACES filmic tone mapping"
+    },
+    {
+      "type": "shadow",
+      "contactShadow": true,
+      "groundShadow": true,
+      "note": "Contact shadow and ground shadow enabled"
+    }
+  ],
+  "lightingPass": {
+    "exposure": 1.0,
+    "toneMapping": "ACESFilmic",
+    "background": "#1a1a1a",
+    "contactShadow": true,
+    "groundShadow": true
+  },
+  "qualityTargets": {
+    "targetFidelity": 0.7,
+    "reviewViewpoints": [
+      "front",
+      "side",
+      "three-quarter"
+    ]
+  },
+  "tier1Results": [
+    {
+      "passed": false,
+      "checks": {
+        "silhouetteIoU": 0.1547,
+        "aspectRatioDelta": 0.491,
+        "scaleDelta": 1.0002,
+        "bilateralSymmetryError": 0.0008,
+        "colorDelta": {
+          "checked": 13,
+          "maxDeltaE": 25.02,
+          "perComponent": [
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.35
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.35
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.35
+            },
+            {
+              "componentId": null,
+              "deltaE": 25.02
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.35
+            }
+          ],
+          "gated": false
+        }
+      },
+      "failures": [
+        "silhouette IoU 0.155 is below threshold 0.85",
+        "aspect-ratio delta 0.491 exceeds threshold 0.05",
+        "scale delta 1.000 exceeds threshold 0.08",
+        "blockout requires --map-stripped-render evidence"
+      ],
+      "maskWarnings": [
+        "render: image is not clearly isolated from background; using most pixels as material evidence"
+      ],
+      "renderHash": "542f974b411de920",
+      "passId": "blockout"
+    },
+    {
+      "passed": false,
+      "checks": {
+        "silhouetteIoU": 0.155,
+        "aspectRatioDelta": 0.491,
+        "scaleDelta": 1.0002,
+        "bilateralSymmetryError": 0.0077,
+        "colorDelta": {
+          "checked": 13,
+          "maxDeltaE": 19.95,
+          "perComponent": [
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.11
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.11
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.11
+            },
+            {
+              "componentId": null,
+              "deltaE": 19.95
+            },
+            {
+              "componentId": null,
+              "deltaE": 4.11
+            }
+          ],
+          "gated": false
+        }
+      },
+      "failures": [
+        "silhouette IoU 0.155 is below threshold 0.85",
+        "aspect-ratio delta 0.491 exceeds threshold 0.05",
+        "scale delta 1.000 exceeds threshold 0.08",
+        "blockout requires --map-stripped-render evidence"
+      ],
+      "maskWarnings": [
+        "render: image is not clearly isolated from background; using most pixels as material evidence"
+      ],
+      "renderHash": "93275c9c94d90e22",
+      "passId": "blockout"
+    }
+  ],
+  "visualEvidence": [
+    {
+      "timestamp": "2026-08-25T05:39:55.386659+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.55,
+      "aiVisionScore": 0.55,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "silhouetteProportion": 0.65,
+        "componentStructure": 0.7,
+        "formDetail": 0.3,
+        "materialSurface": 0.4,
+        "lightingCamera": 0.5
+      },
+      "featureReviews": [
+        {
+          "id": "overall-silhouette",
+          "score": 0.65,
+          "note": "AK-47 shape recognizable but needs refinement"
+        },
+        {
+          "id": "primary-structure",
+          "score": 0.7,
+          "note": "7 components visible"
+        }
+      ],
+      "referenceScreenshot": "reference_ak47_wild_lotus_left.png",
+      "renderScreenshot": "render_blockout_v4.png",
+      "comparisonImage": "comparison_blockout_v4.png",
+      "cameraView": "",
+      "notes": "",
+      "aiVisionNotes": ""
+    },
+    {
+      "timestamp": "2026-08-25T05:43:13.319436+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.6,
+      "aiVisionScore": 0.6,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "silhouetteProportion": 0.7,
+        "componentStructure": 0.75,
+        "formDetail": 0.35,
+        "materialSurface": 0.45,
+        "lightingCamera": 0.5
+      },
+      "featureReviews": [
+        {
+          "id": "overall-silhouette",
+          "score": 0.7,
+          "note": "AK-47 shape recognizable"
+        },
+        {
+          "id": "primary-structure",
+          "score": 0.75,
+          "note": "7 components visible"
+        }
+      ],
+      "referenceScreenshot": "reference_ak47_wild_lotus_left.png",
+      "renderScreenshot": "render_blockout_v5.png",
+      "comparisonImage": "comparison_blockout_v5.png",
+      "cameraView": "",
+      "notes": "",
+      "aiVisionNotes": ""
+    }
+  ]
+}

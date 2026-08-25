@@ -1,0 +1,165 @@
+{
+  "sourceImage": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/reference_ak47_wild_lotus_left.png",
+  "zonesDir": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory",
+  "detailInventory": {
+    "scanMethod": "grid-3x3",
+    "targetMinDetails": 12,
+    "details": [
+      {
+        "id": "stock-rear",
+        "kind": "floral-pattern",
+        "description": "Large pink/magenta lily flower with dark green leaves on the stock butt area. Flower has 6+ petals with visible stamen. Dark brown vine tendrils extend from flower.",
+        "region": {"x": 0.0, "y": 0.0, "width": 0.2, "height": 0.6, "units": "normalized"},
+        "scale": "large",
+        "affects": "stock",
+        "mapsTo": {"type": "component.localFeatures", "ref": "stock.floralLily"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c0.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "stock-gold-band",
+        "kind": "accent-stripe",
+        "description": "Curved gold/bronze band running diagonally across stock. Metallic finish, warm bronze color (#C8944A). Connects receiver area to stock butt.",
+        "region": {"x": 0.1, "y": 0.3, "width": 0.15, "height": 0.3, "units": "normalized"},
+        "scale": "medium",
+        "affects": "stock",
+        "mapsTo": {"type": "material.localOverrides", "ref": "stock.goldBand"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c0.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "receiver-large-lotus",
+        "kind": "floral-pattern",
+        "description": "Dominant large red/crimson lotus flower centered on receiver/stock junction area. Multi-layered petals with visible center detail. This is the primary identity feature of the Wild Lotus skin.",
+        "region": {"x": 0.25, "y": 0.2, "width": 0.2, "height": 0.4, "units": "normalized"},
+        "scale": "large",
+        "affects": "receiver",
+        "mapsTo": {"type": "component.localFeatures", "ref": "receiver.largeLotus"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c1.png",
+        "confidence": 0.98
+      },
+      {
+        "id": "receiver-vine-network",
+        "kind": "floral-pattern",
+        "description": "Dark green vines with leaves connecting flowers across receiver surface. Vines have small thorns/texture. Leaf shapes are elongated with visible veining.",
+        "region": {"x": 0.2, "y": 0.15, "width": 0.4, "height": 0.3, "units": "normalized"},
+        "scale": "medium",
+        "affects": "receiver",
+        "mapsTo": {"type": "material.localOverrides", "ref": "receiver.vinePattern"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c1.png",
+        "confidence": 0.90
+      },
+      {
+        "id": "receiver-bolt-handle",
+        "kind": "hardware",
+        "description": "Bolt carrier charging handle visible on right side of receiver. Dark blued metal, cylindrical knob. Positioned in bolt track slot.",
+        "region": {"x": 0.35, "y": 0.1, "width": 0.08, "height": 0.05, "units": "normalized"},
+        "scale": "small",
+        "affects": "receiver",
+        "mapsTo": {"type": "component.localFeatures", "ref": "receiver.boltHandle"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c2.png",
+        "confidence": 0.90
+      },
+      {
+        "id": "handguard-teal",
+        "kind": "surface-finish",
+        "description": "Upper and lower handguard covered in teal-green base paint. Floral pattern with smaller pink flower visible. Gas tube above in matching teal.",
+        "region": {"x": 0.4, "y": 0.1, "width": 0.25, "height": 0.25, "units": "normalized"},
+        "scale": "medium",
+        "affects": "handguard",
+        "mapsTo": {"type": "material.localOverrides", "ref": "handguard.tealFloral"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c2.png",
+        "confidence": 0.92
+      },
+      {
+        "id": "barrel-dark-metal",
+        "kind": "surface-finish",
+        "description": "Exposed barrel forward of handguard. Dark blued/parkerized steel. Matte dark grey-black finish contrasting with teal painted surfaces.",
+        "region": {"x": 0.65, "y": 0.1, "width": 0.2, "height": 0.08, "units": "normalized"},
+        "scale": "small",
+        "affects": "barrel",
+        "mapsTo": {"type": "material.localOverrides", "ref": "barrel.darkMetal"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c2.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "front-sight",
+        "kind": "hardware",
+        "description": "Front sight post with protective wing ears. Mounted on gas block. Teal-green painted. Visible as vertical post with angled side guards.",
+        "region": {"x": 0.7, "y": 0.05, "width": 0.06, "height": 0.12, "units": "normalized"},
+        "scale": "small",
+        "affects": "frontSight",
+        "mapsTo": {"type": "component.localFeatures", "ref": "frontSight.post"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r0c2.png",
+        "confidence": 0.88
+      },
+      {
+        "id": "magazine-gold-band",
+        "kind": "accent-stripe",
+        "description": "Curved gold/bronze band on curved banana magazine. Follows magazine curvature. Warm metallic finish with slight wear visible.",
+        "region": {"x": 0.35, "y": 0.4, "width": 0.15, "height": 0.35, "units": "normalized"},
+        "scale": "medium",
+        "affects": "magazine",
+        "mapsTo": {"type": "material.localOverrides", "ref": "magazine.goldBand"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r1c1.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "magazine-witness-holes",
+        "kind": "hardware",
+        "description": "Row of witness holes on left side of magazine for round counting. Small circular indentations in a vertical row.",
+        "region": {"x": 0.38, "y": 0.45, "width": 0.05, "height": 0.2, "units": "normalized"},
+        "scale": "small",
+        "affects": "magazine",
+        "mapsTo": {"type": "component.localFeatures", "ref": "magazine.witnessHoles"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r1c1.png",
+        "confidence": 0.85
+      },
+      {
+        "id": "trigger-guard-gold",
+        "kind": "accent-stripe",
+        "description": "Gold/bronze trigger guard and trigger. Metallic finish matching magazine and stock bands. Trigger is a curved finger piece inside the guard.",
+        "region": {"x": 0.3, "y": 0.35, "width": 0.1, "height": 0.1, "units": "normalized"},
+        "scale": "small",
+        "affects": "triggerGuard",
+        "mapsTo": {"type": "material.localOverrides", "ref": "triggerGuard.goldAccent"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r1c1.png",
+        "confidence": 0.92
+      },
+      {
+        "id": "grip-floral",
+        "kind": "floral-pattern",
+        "description": "Pistol grip covered in teal paint with vine/leaf pattern. Dark green leaves visible. Ergonomic curved shape.",
+        "region": {"x": 0.28, "y": 0.3, "width": 0.08, "height": 0.15, "units": "normalized"},
+        "scale": "small",
+        "affects": "grip",
+        "mapsTo": {"type": "material.localOverrides", "ref": "grip.floralOverlay"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r1c1.png",
+        "confidence": 0.88
+      },
+      {
+        "id": "magazine-small-flowers",
+        "kind": "floral-pattern",
+        "description": "Small orange and pink flowers on magazine surface among the green leaves and vines. Accent flowers smaller than the main lotus.",
+        "region": {"x": 0.35, "y": 0.5, "width": 0.1, "height": 0.2, "units": "normalized"},
+        "scale": "small",
+        "affects": "magazine",
+        "mapsTo": {"type": "material.localOverrides", "ref": "magazine.accentFlowers"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r1c1.png",
+        "confidence": 0.85
+      },
+      {
+        "id": "scattered-berries",
+        "kind": "floral-pattern",
+        "description": "Small bright red berries scattered across the teal surface. Round, high-saturation red dots among leaves and vines. Visible on receiver, stock, and handguard.",
+        "region": {"x": 0.15, "y": 0.15, "width": 0.5, "height": 0.3, "units": "normalized"},
+        "scale": "tiny",
+        "affects": "surface",
+        "mapsTo": {"type": "material.localOverrides", "ref": "surface.redBerries"},
+        "evidenceRef": "/Users/tamlh/workspaces/self/AI/img2threejs-org/img2threejs-lab/detail-inventory/zone-r1c1.png",
+        "confidence": 0.80
+      }
+    ]
+  },
+  "authoringInstruction": "All 14 detail entries filled from dual-view visual analysis. Each maps to a component.localFeatures or material.localOverrides entry."
+}

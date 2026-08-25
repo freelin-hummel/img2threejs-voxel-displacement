@@ -236,6 +236,11 @@ def run_cli_fixture(
     )
     environment = os.environ.copy()
     environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    # An empty IMG2_HOME. load_profiles() merges collections contributed by installed plugins, so
+    # without this a base-behaviour test inherits whatever the developer happens to have installed --
+    # and this fixture defines its own "cs2" collection, which then collides with the CS2 plugin's.
+    # Machine-dependent test outcomes are worse than the coupling they reveal.
+    environment["IMG2_HOME"] = str(root / ".img2-empty")
     # This fixture's profile defines only the "cs2" collection, and these tests are about snippets,
     # caching and error shapes -- not about which collection the CLI defaults to. Name it explicitly
     # so they stop depending on that default, which is now "core_3d".
@@ -913,7 +918,11 @@ class CliOutputTest(unittest.TestCase):
                 # only "cs2", and the test is about the cache failure, not the CLI's default.
                 [sys.executable, str(cli), "--collection", "cs2", "needle", "--json"],
                 cwd=root,
-                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+                # Empty IMG2_HOME for the same reason run_cli_fixture sets one: this test builds
+                # its own subprocess, so it would otherwise inherit the developer's installed
+                # plugins and collide with this fixture's "cs2" collection.
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1",
+                     "IMG2_HOME": str(root / ".img2-empty")},
                 capture_output=True,
                 text=True,
                 check=False,
