@@ -115,8 +115,9 @@ this protocol IS the raw material for `new_pre_spec_assessment.py` and `build_de
 This generic pass runs for every subject. When Layer 1 identifies a specialized domain, layer its
 extra rules on top **without** skipping any generic layer:
 
-- **CS2 weapon/knife/glove skins** → `grimoire/build/cs2_finishes.md` (finish style, float, paint
-  seed, view-dependent environment) and `grimoire/intake/cs2_texture_acquisition.md`.
+- **CS2 weapon/knife/glove skins** → the CS2 plugin's `grimoire/build/cs2_finishes.md` (finish style, float, paint
+  seed, view-dependent environment) and its `grimoire/intake/cs2_texture_acquisition.md`. Both ship
+  with the plugin; with no CS2 plugin installed, infer the finish from the reference.
 - **Characters / hybrids** → `grimoire/character/reconstruction.md` (head-units, landmarks,
   proportion lock).
 

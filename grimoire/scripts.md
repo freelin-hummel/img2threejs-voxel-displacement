@@ -32,7 +32,7 @@ not targets; stop earlier on success, repeated defects, oscillation, or plateau.
 The pass checklist is executable in dependency order: generate, render, Tier 1, multi-angle,
 `orchestrate_passes.py check`, profile-specific review, AI review, then sync. The CS2 profile runs:
 
-`stage4_review/cs2_review.py --manifest cs2-intake.json --metrics cs2-review-inputs.json --scene forge/tests/fixtures/knife_review_scene.json --out cs2-review.json`
+`<cs2-plugin>/tools/cs2_review.py --manifest cs2-intake.json --metrics cs2-review-inputs.json --scene <cs2-plugin>/tests/fixtures/knife_review_scene.json --out cs2-review.json` (the `cs2-review` checklist step carries the resolved paths)
 
 The character profile requires the reconstruction/likeness contracts, landmark evidence, and an
 explicit stylized-versus-projection route decision before pre-spec authoring.

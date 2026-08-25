@@ -827,7 +827,7 @@ def validate_cs2_view_dependent_environment(spec: dict[str, Any], errors: list[s
     failure, not a quality nit. The code-generated default environment always exists unless
     explicitly disabled (cs2Finish.environmentAvailable = false), so this only fires as the
     last-resort guard described in design.md, never on the default image-only path.
-    See grimoire/build/cs2_finishes.md."""
+    See the CS2 domain plugin's finish rulebook."""
     materials = [m for m in spec.get("materials", []) if isinstance(m, dict)]
     view_dependent = [m for m in materials if m.get("needsEnvironment") is True]
     if not view_dependent:
@@ -840,7 +840,7 @@ def validate_cs2_view_dependent_environment(spec: dict[str, Any], errors: list[s
             f"material(s) {names} are view-dependent and need an environment map (scene.environment) "
             "or they render muddy, but cs2Finish.environmentAvailable is false -- enable the "
             "code-generated default environment or supply a user HDRI before generating "
-            "(see grimoire/build/cs2_finishes.md)"
+            "(see the CS2 domain plugin's finish rulebook)"
         )
 
 

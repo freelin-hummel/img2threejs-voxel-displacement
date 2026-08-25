@@ -19,7 +19,7 @@ only the executable order and one-line summary; this file defines the mandatory 
   `forge/stage4_review/diagnose_render_multi_angle.py` flags `degenerate-view` when an orbited
   silhouette collapses (a flat plane faking a volume). Orbit angles use reference-free
   self-consistency — never scored against a reference angle the photo doesn't cover.
-- **CS2 knife review contract**: `forge/stage4_review/cs2_review.py` consumes the manifest and
+- **CS2 knife review contract** (ships with the CS2 domain plugin): its `tools/cs2_review.py` consumes the manifest and
   versioned scene fixture, then blocks wrong family identity, missing projection coverage,
   painted-region mismatch, critical identity-detail failure, finish/material response failure,
   and degenerate orbit form. It records exactness tier, hidden-region confidence, per-region
@@ -28,7 +28,7 @@ only the executable order and one-line summary; this file defines the mandatory 
   the **Glock-18** pistol; every other family and unknown subtype must stop with
   `unsupported-family` or `unsupported-subtype`, and must never receive another family's component
   tree as a generic fallback. Registering a family is not implementing its geometry. Authoritative
-  boundary and intake order: `grimoire/intake/cs2_intake_contract.md` and `SKILL.md`'s CS2 section.
+  boundary and intake order: the CS2 plugin's `cs2_intake_contract.md` and `SKILL.md`'s CS2 section.
 - **Bounded correction loop (token-burn safety)**: `forge/stage4_review/correction_loop.py`
   guarantees termination (success/repeated-defect/oscillation/plateau/hard-ceiling), escalating to
   `request-input` — never a silent infinite burn. Hard gates route to `refine-code`; repeated defects

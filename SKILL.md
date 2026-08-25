@@ -227,8 +227,10 @@ Full flags: `grimoire/scripts.md`. Never let a script *score* visuals — that i
 10. Record the review (overall + per-layer + per-feature scores + decision):
     `forge/stage4_review/append_review.py object-sculpt-spec.json --pass-id <pass> --fidelity <0-1> --action <continue|refine-spec|refine-code|request-input|stop> --summary "..." --render-screenshot <shot> --comparison-image cmp.png --ai-vision-score <0-1> --layer-scores-json '{...}' --feature-reviews-json <f.json> --in-place`.
     For the CS2 family path, produce the versioned report first with
-    the CS2 plugin's `tools/cs2_review.py --manifest cs2-intake.json --metrics cs2-review-inputs.json --scene forge/tests/fixtures/knife_review_scene.json --out cs2-review.json`
-    and attach it with `--cs2-review-json cs2-review.json --review-scene-json forge/tests/fixtures/knife_review_scene.json`.
+    the command the `cs2-review` checklist step names (the CS2 plugin's `tools/cs2_review.py`, with the
+    review-scene fixture the plugin ships)
+    and attach it with `--cs2-review-json cs2-review.json --review-scene-json <the plugin's
+    tests/fixtures/knife_review_scene.json>`. The checklist step carries the resolved path.
     A failed family, painted-region, projection-coverage, critical-detail, or orbit gate blocks
     `continue` even when the global score passes. See the CS2 plugin's `docs/cs2/review-gates.md`.
 11. Sync pipeline state after manual review edits, record checklist evidence, then re-run the local
