@@ -18,6 +18,25 @@ can plan around.
 | v1.4 | Weapon Pipeline | 2026-07-25–26 | CS2 image-matched reconstruction, provenance-aware intake and local search, projection-first finishes, family-specific adapters, structural review and component-coverage gates |
 | v1.5 | The Character Update | 2026-08-12 | Skeleton derived from the component tree and bound to `SkinnedMesh` geometry, geodesic skinning, hair as a five-stage subsystem with a hard scalp-exposure gate, chirality gates, interior-difference review, `tapered-sweep`, material pipeline with a blocking acceptance gate, resumable workflow state |
 
+## Experimental fork track: voxel displacement
+
+This is an opt-in research/implementation track and does not change the shipped upstream default.
+Daniel Schroeder's renderer is unpublished, so every milestone is described by independently
+verifiable behavior rather than an assumed port.
+
+| Milestone | State | Deliverable | Acceptance boundary |
+| --- | --- | --- | --- |
+| VD-0 Intake and contract | In progress | Prompt/OBJ/GLB/texture routing, Codex ImageGen reference brief, deterministic height/provisional-normal/albedo bake, final-occupancy VXD chunk codec, shared wiki | Pure-Python and codec tests; no visual-parity claim |
+| VD-1 Static surface voxels | Planned | Conservative triangle-box surface voxelizer, material sampling, palette and source-normal transfer, worker cancellation | Golden fixtures, byte-identical output, source-to-voxel error and browser reference renderer |
+| VD-2 Static surface displacement | Planned | Heightfield and constrained UV-surface displacement, whole-cell geometry plus continuous-height lighting, thickness/curvature rejection | Silhouette/depth/normal captures and failure heatmaps on safe and unsafe meshes |
+| VD-3 Animation frames | Planned | Shared-grid posed-frame baking, root-motion metadata, fixed-rate playback and frame deduplication | Temporal stability, frame timing, memory, and canonical animation screenshots |
+| VD-4 Production traversal | Planned | Chunked WebGPU/TSL proxy-box traversal, correct hit depth, LOD aggregates, explicit WebGL fallback | Target-hardware frame time, GPU memory, readback screenshots, fallback parity and rollback |
+
+Surface displacement is for substantial static environment geometry. Thin props and characters use
+direct surface voxelization; deforming animation uses discrete baked pose frames. A single generic
+"voxelize" switch is not an acceptable implementation of this track. Research and cross-project
+adoption notes live in [`docs/voxel-displacement/`](docs/voxel-displacement/README.md).
+
 ### v1.2 — Humanoid character generator
 
 Characters and hybrid subjects became first-class citizens of the pipeline, alongside a round of

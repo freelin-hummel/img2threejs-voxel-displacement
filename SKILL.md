@@ -33,7 +33,9 @@ Codex execute the same code instead of drifting apart:
 
 The user attaches/points to an object image and wants a procedural Three.js model, a
 reconstruction/animation/destruction plan, a sculpt spec, or code. Also for material studies,
-action-ready props, game objects, botanical/mechanical parts, and stylized reconstructions.
+action-ready props, game objects, botanical/mechanical parts, and stylized reconstructions. This
+fork also has an explicit `voxel-displacement-inspired` route for low-poly OBJ/GLB sources,
+albedo/height textures, or text prompts that first need controlled Codex ImageGen references.
 
 ## Core Promise
 
@@ -77,12 +79,46 @@ python3 forge/state.py mark <step-id> --state .img2threejs/state.json --evidence
 
 ## Required Inputs
 
-- one image path / screenshot / URL / attached image (if missing or unreadable, ask)
+- default procedural route: one image path / screenshot / URL / attached image
+- opt-in voxel-displacement route: at least one text prompt, OBJ/GLB mesh, albedo texture, or height
+  texture; a renderable displaced surface additionally needs a target projection/mesh and a
+  calibrated height mapping
 - intended use: prop, game object, hero render, playable/destructible object, animation rig
   (default: real-time browser prop with interactive performance)
 - for a CS2 request, an authoritative classification record (family/subtype and evidence refs) or
   an explicit request for the user/vision provider to supply one; heuristic detection alone is not
   enough to select a geometry adapter
+
+## Opt-in voxel-displacement route
+
+Use this route only when the user explicitly asks for voxel displacement, voxelized source assets,
+or the shared research workflow. It changes the upstream code-only output boundary and therefore
+must never silently replace the default procedural factory.
+
+1. Read `docs/voxel-displacement/README.md`, then plan before conversion:
+   `python3 forge/stage1_intake/plan_voxel_displacement.py --name <name> [--prompt <text>] [--mesh <obj-or-glb>] [--albedo <img>] [--height <img>] --out voxel-intake.json`.
+2. Obey the selected representation. Static UV-mapped environment meshes plus a height texture use
+   `surface-displacement`; small/thin props use `surface-voxel-mesh`; skinned or morphing inputs use
+   discrete `baked-surface-voxel-frames`. Never call these three routes interchangeable.
+3. For text-only intake, follow the emitted `referenceGeneration.workflow` with Codex's built-in
+   `$imagegen` skill and verify that the active route honors the requested `gpt-image-2` target.
+   Generate the anchor first and derive one reference per later call. For objects, reject geometry
+   or identity drift across viewpoints. For materials, validate seamless edges and treat the
+   generated height candidate as uncalibrated until reviewed. Save and inspect every selected image.
+   Deterministic forge code emits the brief; it does not hide an API call or approve generated pixels.
+4. Bake supplied height/albedo channels with
+   `python3 forge/stage3_build/bake_voxel_displacement.py --plan voxel-intake.json --out material.voxel-bake.json`.
+   Whole-voxel steps own visible geometry. The height-derived normal field is a provisional
+   sub-voxel-lighting input until target scale, aspect, tangent basis, and wrap are calibrated.
+5. Treat the low-poly source mesh as collision, navigation, hierarchy, pivot, and socket authority.
+   A displacement-aware query is required only when gameplay must match the visible relief.
+6. The checked-in slice is an intake planner, deterministic texture bake, and VXD codec contract.
+   Arbitrary-mesh shell mapping, conservative prop voxelization, animated-frame baking, WebGPU DDA,
+   and browser visual acceptance remain unimplemented until their own runtime evidence exists.
+
+Daniel Schroeder has published the behavior and constraints, not his renderer or preprocessing
+source. Call this route `voxel-displacement-inspired` and never claim implementation parity from a
+matching screenshot or a successful structural test.
 
 ## The Loop (scripts do enforcement; agent vision does judgment)
 

@@ -43,6 +43,50 @@ material/PBR evidence decision. A non-applicable conditional gate must be skippe
 `stage1_intake/probe_image.py <image>` — image type, dimensions, aspect ratio, obvious technical
 issues. Metadata only; not a substitute for visual inspection.
 
+## stage1_intake/plan_voxel_displacement.py
+
+Opt-in source router for the voxel-displacement fork. It accepts any useful combination of
+`--prompt`, `--mesh <obj-or-glb>`, `--albedo`, and `--height`, plus an `--asset-role`. It hashes and
+probes every local input, checks UV/normal/topology signals available without a renderer, and emits
+one of four non-interchangeable routes:
+
+- `surface-displacement`: static UV mesh plus height texture;
+- `surface-voxel-mesh`: static props and thin geometry;
+- `baked-surface-voxel-frames`: skin/morph animation sampled into discrete poses; or
+- `generated-reference-intake`: text prompt requiring the emitted Codex ImageGen workflow.
+
+```bash
+python3 forge/stage1_intake/plan_voxel_displacement.py \
+  --name stone-wall --asset-role environment \
+  --mesh wall.obj --albedo stone.png --height stone-height.png \
+  --min-height-voxels -2 --max-height-voxels 2 \
+  --out voxel-intake.json
+```
+
+Exit `0` means the selected stage may continue, `1` means a stable blocked intake finding, and `2`
+means invocation or file failure. `planned` names a real future conversion mode, not implemented
+runtime capability. Generated references are always external image evidence; the planner never
+calls ImageGen or approves pixels.
+
+## stage3_build/bake_voxel_displacement.py
+
+Implemented texture-bake slice for `surface-displacement` and `voxel-displacement-material` plans.
+It writes a renderer-neutral JSON artifact using checksummed `zlib-base64` channels:
+
+- `heightUnorm8`: unquantized height for shading;
+- `heightStepsI8`: two's-complement whole-voxel geometry offsets;
+- `surfaceNormalOct8`: provisional two-byte octahedral texture-space normals derived from unquantized height; and
+- optional `albedoRgba8`: sRGB base color plus alpha.
+
+```bash
+python3 forge/stage3_build/bake_voxel_displacement.py \
+  --plan voxel-intake.json --normal-strength 1 \
+  --out material.voxel-bake.json
+```
+
+Albedo and height dimensions must match; the baker refuses implicit resampling. The artifact records
+unimplemented renderer/converter boundaries so a valid bake cannot be reported as visual parity.
+
 ## stage2_spec/new_pre_spec_assessment.py
 `stage2_spec/new_pre_spec_assessment.py "Name" [--image IMG] [--complexity simple|moderate|complex|ultra-complex] --out assessment.json [--force]`
 Emits a pre-spec assessment + `qualityContract` skeleton. Refine `--complexity` after looking at

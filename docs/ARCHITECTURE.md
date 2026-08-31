@@ -41,6 +41,32 @@ on points, so a pass is never spent rendering geometry that was already wrong. A
 refuse**: below a confidence of `0.82` the track resolves to `request-input` rather than guessing
 whether the subject is a weapon or a character.
 
+### Opt-in voxel-displacement branch
+
+The voxel-displacement fork is a sibling route, not another procedural primitive and not a rename
+for the existing visual-hull or SDF voxel grids:
+
+```text
+object prompt -> Codex ImageGen brief -> validated multi-view images -> normal sculpt intake
+material prompt -> Codex ImageGen brief -> validated albedo/height candidates -> texture calibration
+OBJ/GLB + height/albedo -> suitability route -> deterministic voxel-displacement texture bake
+thin/static OBJ/GLB -> conservative surface-shell conversion (planned)
+skinned/morphing GLB -> fixed-pose voxel-frame bake (planned)
+VXD asset -> chunked WebGPU traversal + explicit fallback (planned)
+```
+
+`forge/stage1_intake/plan_voxel_displacement.py` owns source provenance and representation routing.
+`forge/stage3_build/bake_voxel_displacement.py` owns the implemented texture vertical slice: whole
+voxel height steps for geometry, continuous height and provisional texture-space octahedral normals,
+and optional sRGB albedo. The isolated `integrations/voxel_displacement/` package owns the portable
+VXD contract so the stdlib forge core does not acquire browser dependencies.
+
+The low-poly source remains gameplay authority for collision, navigation, pivots, sockets, and
+coarse queries. The voxel representation is rendering authority only until an exact
+displacement-aware query is deliberately added. Surface displacement, direct surface-voxel meshes,
+and baked animation frames remain distinct because their safety constraints and memory behavior are
+different. Full rationale and source annotations: [`voxel-displacement/README.md`](voxel-displacement/README.md).
+
 ### Material reference hand-off
 
 Material identity is an executable sub-pipeline rather than prose in the spec:
@@ -118,6 +144,7 @@ The net effect: you still get a faithful 3D model from an image, but the expensi
 | --- | --- |
 | `stage1_intake/probe_image.py` | Image metadata and obvious technical issues (not a visual check). |
 | `stage1_intake/probe_glb.py` | GLB provenance, bounds, scene inventory and conservative semantic-readiness assessment. |
+| `stage1_intake/plan_voxel_displacement.py` | Route prompt, OBJ/GLB, albedo, and height sources into the compatible opt-in voxel representation. |
 | `stage2_spec/new_pre_spec_assessment.py` | Classify the object, score complexity, emit a quality contract. |
 | `stage2_spec/new_sculpt_spec.py` | Author the ObjectSculptSpec from the assessment. |
 | `stage2_spec/validate_sculpt_spec.py` | Validate the spec; `--strict-quality` blocks shallow specs before codegen. |
@@ -141,6 +168,7 @@ The net effect: you still get a faithful 3D model from an image, but the expensi
 | `stage1_intake/delight_albedo.py` | Approximate a neutral albedo from the photo before texture projection. |
 | `stage1_intake/run_vision_adapter.py` | Invoke optional isolated SAM2, MediaPipe, and Depth Anything evidence adapters. |
 | `stage3_build/bake_projected_texture.py` | Emit a projection/UV-bake descriptor for photo-texture projection. |
+| `stage3_build/bake_voxel_displacement.py` | Bake checksummed whole-step height, continuous height/normal, and optional albedo channels. |
 
 ### Character rig — `stage5_rig/`
 

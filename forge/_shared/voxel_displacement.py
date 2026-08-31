@@ -1,0 +1,343 @@
+"""Shared, renderer-neutral voxel-displacement helpers.
+
+The displacement renderer itself is intentionally not implemented here.  This
+module turns ordinary image pixels into the two fields a renderer needs:
+
+* whole-voxel height steps for visible geometry; and
+* continuous-height normals for sub-voxel lighting detail.
+
+It also builds the Codex ImageGen brief used when intake starts from text.
+Everything in this module is deterministic and Python 3.10+ stdlib-only.
+"""
+
+from __future__ import annotations
+
+import base64
+import hashlib
+import math
+import zlib
+from pathlib import Path
+from typing import Any, Iterable
+
+
+BAKE_SCHEMA = "img2threejs.voxel-displacement-bake.v1"
+INTAKE_SCHEMA = "img2threejs.voxel-displacement-intake.v1"
+REFERENCE_BRIEF_SCHEMA = "img2threejs.voxel-reference-brief.v1"
+MAX_CHANNEL_DECODED_BYTES = 512 * 1024 * 1024
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def encode_channel(payload: bytes) -> dict[str, Any]:
+    """Encode a binary channel in a portable JSON representation."""
+
+    compressed = zlib.compress(payload, level=9)
+    return {
+        "encoding": "zlib-base64",
+        "decodedBytes": len(payload),
+        "encodedBytes": len(compressed),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "data": base64.b64encode(compressed).decode("ascii"),
+    }
+
+
+def decode_channel(channel: dict[str, Any], *, max_decoded_bytes: int | None = None) -> bytes:
+    if channel.get("encoding") != "zlib-base64":
+        raise ValueError("unsupported voxel-displacement channel encoding")
+    decoded_bytes = channel.get("decodedBytes")
+    encoded_bytes = channel.get("encodedBytes")
+    if not isinstance(decoded_bytes, int) or isinstance(decoded_bytes, bool) or decoded_bytes < 0:
+        raise ValueError("voxel-displacement channel decodedBytes must be a non-negative integer")
+    if not isinstance(encoded_bytes, int) or isinstance(encoded_bytes, bool) or encoded_bytes < 0:
+        raise ValueError("voxel-displacement channel encodedBytes must be a non-negative integer")
+    effective_limit = MAX_CHANNEL_DECODED_BYTES
+    if max_decoded_bytes is not None:
+        if max_decoded_bytes < 0:
+            raise ValueError("maximum decoded channel size must be non-negative")
+        effective_limit = min(effective_limit, max_decoded_bytes)
+    if decoded_bytes > effective_limit:
+        raise ValueError("declared voxel-displacement channel length exceeds the allowed size")
+    try:
+        compressed = base64.b64decode(str(channel["data"]), validate=True)
+    except Exception as exc:  # noqa: BLE001 - convert codec errors into a stable contract error
+        raise ValueError(f"invalid voxel-displacement channel: {exc}") from exc
+    if len(compressed) != encoded_bytes:
+        raise ValueError("encoded voxel-displacement channel length does not match metadata")
+    try:
+        decompressor = zlib.decompressobj()
+        payload = decompressor.decompress(compressed, decoded_bytes + 1)
+    except zlib.error as exc:
+        raise ValueError(f"invalid voxel-displacement channel: {exc}") from exc
+    if len(payload) > decoded_bytes or decompressor.unconsumed_tail or not decompressor.eof:
+        raise ValueError("decoded voxel-displacement channel exceeds or does not reach its declared length")
+    if decompressor.unused_data:
+        raise ValueError("voxel-displacement channel contains trailing compressed data")
+    if len(payload) != decoded_bytes:
+        raise ValueError("decoded voxel-displacement channel length does not match metadata")
+    if hashlib.sha256(payload).hexdigest() != channel.get("sha256"):
+        raise ValueError("decoded voxel-displacement channel hash does not match metadata")
+    return payload
+
+
+def _height_sample_byte(pixel: tuple[int, int, int, int]) -> int:
+    """Collapse raw RGB data bytes to one height sample.
+
+    The intake decoder does not expose image color-profile intent, so this is
+    deliberately an encoded-value BT.709 luma calculation rather than a claim
+    that an sRGB transfer function was removed. Grayscale height maps pass
+    through unchanged.
+    """
+
+    red, green, blue, _alpha = pixel
+    return max(0, min(255, round(0.2126 * red + 0.7152 * green + 0.0722 * blue)))
+
+
+def _validate_height_range(min_voxels: float, max_voxels: float) -> None:
+    if not math.isfinite(min_voxels) or not math.isfinite(max_voxels):
+        raise ValueError("voxel height range must be finite")
+    if min_voxels >= max_voxels:
+        raise ValueError("minimum voxel height must be less than maximum voxel height")
+    if min_voxels < -127 or max_voxels > 127:
+        raise ValueError("voxel height range must fit signed 8-bit steps (-127..127)")
+
+
+def height_fields(
+    width: int,
+    height: int,
+    pixels: Iterable[tuple[int, int, int, int]],
+    *,
+    min_voxels: float,
+    max_voxels: float,
+    normal_strength: float = 1.0,
+) -> dict[str, Any]:
+    """Build continuous height, whole-step displacement and octahedral normals."""
+
+    _validate_height_range(min_voxels, max_voxels)
+    if width <= 0 or height <= 0:
+        raise ValueError("height image dimensions must be positive")
+    if not math.isfinite(normal_strength) or normal_strength <= 0:
+        raise ValueError("normal strength must be a positive finite number")
+
+    pixel_list = list(pixels)
+    if len(pixel_list) != width * height:
+        raise ValueError("height pixel count does not match image dimensions")
+
+    continuous = bytes(_height_sample_byte(pixel) for pixel in pixel_list)
+    steps_signed: list[int] = []
+    for value in continuous:
+        height_voxels = min_voxels + (value / 255.0) * (max_voxels - min_voxels)
+        steps_signed.append(max(-127, min(127, round(height_voxels))))
+    steps = bytes(step & 0xFF for step in steps_signed)
+
+    oct_normals = bytearray()
+    height_scale = max_voxels - min_voxels
+    for y in range(height):
+        top_y = max(0, y - 1)
+        bottom_y = min(height - 1, y + 1)
+        for x in range(width):
+            left_x = max(0, x - 1)
+            right_x = min(width - 1, x + 1)
+            left = continuous[y * width + left_x] / 255.0
+            right = continuous[y * width + right_x] / 255.0
+            top = continuous[top_y * width + x] / 255.0
+            bottom = continuous[bottom_y * width + x] / 255.0
+            dx = (right - left) * height_scale * normal_strength
+            dy = (bottom - top) * height_scale * normal_strength
+            nx, ny, nz = -dx, -dy, 2.0
+            length = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
+            nx, ny, nz = nx / length, ny / length, nz / length
+            denominator = abs(nx) + abs(ny) + abs(nz) or 1.0
+            ox, oy = nx / denominator, ny / denominator
+            if nz < 0:
+                old_x = ox
+                ox = (1.0 - abs(oy)) * (1.0 if old_x >= 0 else -1.0)
+                oy = (1.0 - abs(old_x)) * (1.0 if oy >= 0 else -1.0)
+            oct_normals.extend(
+                (
+                    max(0, min(255, round((ox * 0.5 + 0.5) * 255.0))),
+                    max(0, min(255, round((oy * 0.5 + 0.5) * 255.0))),
+                )
+            )
+
+    chromatic_pixels = sum(
+        1 for red, green, blue, _alpha in pixel_list if max(red, green, blue) - min(red, green, blue) > 8
+    )
+    opaque_pixels = sum(1 for _red, _green, _blue, alpha in pixel_list if alpha == 255)
+    transparent_pixels = sum(1 for _red, _green, _blue, alpha in pixel_list if alpha < 255)
+    unique_steps = sorted(set(steps_signed))
+    zero_source_value = None
+    if min_voxels <= 0.0 <= max_voxels:
+        zero_source_value = round((0.0 - min_voxels) / (max_voxels - min_voxels) * 255.0, 3)
+    return {
+        "mapping": {
+            "sourceRange": [0, 255],
+            "voxelRange": [min_voxels, max_voxels],
+            "quantization": "nearest-whole-voxel",
+            "roundingTies": "to-even",
+            "sourceInterpretation": "raw-rgb-data-bt709-luma-u8",
+            "zeroSourceValue": zero_source_value,
+        },
+        "statistics": {
+            "minSourceValue": min(continuous),
+            "maxSourceValue": max(continuous),
+            "meanSourceValue": round(sum(continuous) / len(continuous), 3),
+            "quantizedSteps": unique_steps,
+            "chromaticPixelFraction": round(chromatic_pixels / len(pixel_list), 6),
+            "opaquePixelFraction": round(opaque_pixels / len(pixel_list), 6),
+            "nonOpaquePixelFraction": round(transparent_pixels / len(pixel_list), 6),
+        },
+        "heightUnorm8": continuous,
+        "heightStepsI8": steps,
+        "surfaceNormalOct8": bytes(oct_normals),
+    }
+
+
+def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[str, Any]:
+    """Build a multi-call Codex ImageGen brief for reconstruction references.
+
+    The built-in tool is intentionally invoked by the agent, not by deterministic
+    forge code.  Separate view calls preserve useful per-view resolution.  Each
+    derived call uses the anchor as a reference and repeats the geometry lock.
+    """
+
+    normalized = " ".join(prompt.split())
+    if not normalized:
+        raise ValueError("text prompt must not be empty")
+    if subject_kind not in {"object", "character", "environment", "material"}:
+        raise ValueError("subject kind must be object, character, environment, or material")
+
+    if subject_kind == "material":
+        anchor_request = (
+            f"Create an opaque, seamless square albedo reference for: {normalized}. "
+            "Fill the frame with one orthographic tile under flat neutral illumination, with no baked highlights or shadows."
+        )
+        derived = [
+            {
+                "id": "height-candidate",
+                "operation": "generate-with-reference",
+                "reference": "anchor",
+                "request": (
+                    "Using exactly the same tile layout, create a seamless grayscale height-map candidate. "
+                    "White means higher, black means lower, and there must be no lighting or color."
+                ),
+            },
+            {
+                "id": "material-oblique",
+                "operation": "generate-with-reference",
+                "reference": "anchor",
+                "request": (
+                    "Render a physical oblique preview of the exact same tile under raking light so relief can be reviewed."
+                ),
+            }
+        ]
+        shared_constraints = (
+            "Keep the motif, scale, colors, tile boundaries, and edge continuity identical across outputs. "
+            "No objects, perspective in data maps, text, labels, border, watermark, logo, or non-seamless edge."
+        )
+        composition = "square orthographic tile; pattern reaches every edge; opposite edges tile seamlessly"
+        acceptance_required = [
+            "all files are readable square raster images",
+            "the albedo candidate is opaque and seamless with no directional lighting baked in",
+            "the height candidate preserves the anchor layout and uses grayscale data only",
+            "opposite edges remain continuous in both data-map candidates",
+            "the oblique preview depicts the same material and is used only for visual review",
+            "generated height is treated as an estimate and calibrated before metric displacement",
+            "no labels, borders, watermarks, logos, or unrelated objects",
+        ]
+    else:
+        anchor_request = (
+            f"Create a reconstruction reference for this {subject_kind}: {normalized}. "
+            "Show exactly one complete subject in a three-quarter front view."
+        )
+        derived = [
+            {"id": "front", "operation": "generate-with-reference", "reference": "anchor", "view": "front orthographic"},
+            {"id": "right", "operation": "generate-with-reference", "reference": "anchor", "view": "right orthographic"},
+            {"id": "back", "operation": "generate-with-reference", "reference": "anchor", "view": "back orthographic"},
+            {"id": "left", "operation": "generate-with-reference", "reference": "anchor", "view": "left orthographic"},
+        ]
+        shared_constraints = (
+            "Keep the subject geometry, proportions, silhouette, materials, colors, handedness, and small details "
+            "identical across every view. Show the entire subject with generous padding. Use neutral diffuse studio "
+            "lighting that does not bake directional shadows into the albedo. Isolate it on a genuinely transparent "
+            "background. No floor, cast shadow, scenery, text, labels, border, watermark, logo, extra object, or cropped part."
+        )
+        composition = "centered; full subject visible; three-quarter front camera"
+        acceptance_required = [
+            "all files are readable raster images",
+            "one complete isolated subject per image",
+            "anchor identity and geometry remain consistent across views",
+            "view direction matches the requested camera",
+            "transparent background is preserved",
+            "no cast shadows, labels, watermarks, or extra objects",
+        ]
+    anchor_prompt = "\n".join(
+        (
+            "Use case: stylized-concept",
+            "Asset type: voxel-displacement reconstruction reference",
+            f"Primary request: {anchor_request}",
+            "Style/medium: clean 3D asset turnaround render; materially legible; no cinematic grading",
+            f"Composition/framing: {composition}",
+            f"Constraints: {shared_constraints}",
+        )
+    )
+
+    workflow: list[dict[str, Any]] = [
+        {
+            "id": "anchor",
+            "operation": "generate",
+            "toolInvocation": "$imagegen",
+            "prompt": anchor_prompt,
+        }
+    ]
+    for view in derived:
+        if subject_kind == "material":
+            primary_request = view["request"]
+            derived_composition = composition
+            derived_constraints = shared_constraints
+        else:
+            primary_request = f"Render the exact same subject from the {view['view']} view."
+            derived_composition = "centered; full subject visible; match the anchor scale and padding"
+            derived_constraints = f"change only the camera viewpoint. {shared_constraints}"
+        workflow.append(
+            {
+                **view,
+                "toolInvocation": "$imagegen",
+                "prompt": "\n".join(
+                    (
+                        "Use case: identity-preserve",
+                        "Asset type: voxel-displacement reconstruction reference",
+                        "Input images: Image 1: approved anchor reference",
+                        f"Primary request: {primary_request}",
+                        f"Composition/framing: {derived_composition}",
+                        f"Constraints: {derived_constraints}",
+                    )
+                ),
+            }
+        )
+
+    return {
+        "schema": REFERENCE_BRIEF_SCHEMA,
+        "provider": "codex-imagegen",
+        "requestedModel": "gpt-image-2",
+        "modelEnforcement": "caller-must-verify-active-codex-imagegen-route",
+        "executionMode": "built-in-tool",
+        "subjectKind": subject_kind,
+        "sourcePrompt": normalized,
+        "strategy": "anchor-then-derived-views",
+        "workflow": workflow,
+        "acceptance": {
+            "required": acceptance_required,
+            "decision": "accept-or-regenerate-one-view",
+            "note": (
+                "Generated material maps are hypotheses, not calibrated measurements. Validate seams, channel meaning, and relief before baking."
+                if subject_kind == "material"
+                else "Generated views are reference evidence, not proof of hidden-side geometry. Validate consistency before visual-hull or sculpt intake."
+            ),
+        },
+    }

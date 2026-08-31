@@ -1,0 +1,29 @@
+{
+  "name": "@img2threejs/voxel-displacement",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Renderer-neutral VXD v1 contracts, validation, and deterministic chunk codec.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "check": "npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

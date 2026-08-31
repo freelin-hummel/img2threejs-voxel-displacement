@@ -5,6 +5,24 @@ All notable changes to **img2threejs** are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Start an opt-in `voxel-displacement-inspired` fork track with deterministic prompt/OBJ/GLB/texture
+  intake routing. Text-only intake emits an anchor-plus-derived-reference Codex ImageGen brief that
+  requests `gpt-image-2`; forge remains deterministic and does not hide an image-generation API call.
+- Add a renderer-neutral texture baker that separates whole-voxel geometry steps from provisional
+  texture-space octahedral normals and optionally carries checksummed sRGB RGBA albedo.
+- Add the initial portable VXD contract/codec integration and a consolidated cross-project research
+  wiki. Static surface displacement, direct prop voxelization, animated pose-frame baking, and
+  WebGPU traversal are tracked as distinct milestones rather than one generic voxel mode.
+
+### Notes
+
+- Daniel Schroeder's preprocessing and renderer source are not public. The fork implements and
+  validates published principles independently and does not claim parity from the intake/bake slice.
+
 ## [1.5.1] — 2026-08-22
 
 ### Added

@@ -84,6 +84,40 @@ You give it one reference image of an object. It produces a `THREE.Group` factor
 
 It runs under Claude Code, Codex, or OpenCode. It is agent-agnostic: wherever the docs say "agent vision" or "agent browser tool", it uses whatever the host provides — native image reading, a browser MCP, the project preview, or a user-supplied screenshot.
 
+### Experimental voxel-displacement fork track
+
+This branch starts a renderer-neutral, opt-in `voxel-displacement-inspired` track. It accepts three
+different source families without pretending they are the same algorithm:
+
+| Source | Selected representation | Intended use |
+| --- | --- | --- |
+| UV-mapped low-poly OBJ/GLB plus albedo and height | Quantized surface displacement with a continuous-height normal candidate | Static walls, terrain, arches, and other substantial environment surfaces |
+| Static detailed or thin OBJ/GLB | Baked surface-voxel mesh | Props, foliage, and shapes that displacement would punch through or collapse |
+| Skinned/morphing GLB | Discrete baked voxel pose frames | Sprite-like character animation without continuous blending |
+
+A text prompt is also valid intake. The planner emits an anchor-plus-derived-reference brief for
+Codex's built-in `$imagegen` workflow requesting `gpt-image-2`; the caller must verify the active
+route. Object references must pass readability, viewpoint, transparency, and cross-view identity
+checks. Material references instead require seam, channel-meaning, and relief-consistency review.
+
+```bash
+python3 forge/stage1_intake/plan_voxel_displacement.py \
+  --name stone-arch --asset-role environment \
+  --mesh arch.obj --albedo stone.png --height stone-height.png \
+  --out voxel-intake.json
+
+python3 forge/stage3_build/bake_voxel_displacement.py \
+  --plan voxel-intake.json --out stone-material.voxel-bake.json
+```
+
+The checked-in milestone provides input routing, OBJ/GLB inspection, a deterministic texture bake
+(whole-voxel height, continuous height, provisional texture-space normals, optional albedo), and the initial VXD
+chunk codec. It does **not** yet provide arbitrary-mesh shell mapping, prop voxelization, animation
+frame baking, or a WebGPU hierarchical-DDA renderer. Daniel Schroeder's implementation is not
+public, so this fork reproduces published principles and must earn parity through its own runtime
+evidence. The consolidated, cross-project research wiki begins at
+[`docs/voxel-displacement/README.md`](docs/voxel-displacement/README.md).
+
 ### Subjects and detail accuracy
 
 - **Objects and characters.** Each subject is classified `object`, `character`, or `hybrid`. Objects follow the hard-surface pipeline; characters route through an anatomy-aware track (head-unit proportions, facial landmarks, pose) documented in `grimoire/character/reconstruction.md`.
@@ -229,6 +263,7 @@ The net effect: you still get a faithful 3D model from an image, but the expensi
 | Script | Role |
 | --- | --- |
 | `stage1_intake/probe_image.py` | Image metadata and obvious technical issues (not a visual check). |
+| `stage1_intake/plan_voxel_displacement.py` | Route prompt, OBJ/GLB, albedo, and height inputs into the compatible opt-in voxel representation. |
 | `stage2_spec/new_pre_spec_assessment.py` | Classify the object, score complexity, emit a quality contract. |
 | `stage2_spec/new_sculpt_spec.py` | Author the ObjectSculptSpec from the assessment. |
 | `stage2_spec/validate_sculpt_spec.py` | Validate the spec; `--strict-quality` blocks shallow specs before codegen. |
@@ -250,6 +285,7 @@ The net effect: you still get a faithful 3D model from an image, but the expensi
 | `stage1_intake/solve_camera_pose.py` | Emit a reference-camera block so the render can be camera-matched. |
 | `stage1_intake/delight_albedo.py` | Approximate a neutral albedo from the photo before texture projection. |
 | `stage3_build/bake_projected_texture.py` | Emit a projection/UV-bake descriptor for photo-texture projection. |
+| `stage3_build/bake_voxel_displacement.py` | Bake renderer-neutral whole-step height, continuous height/normal, and optional albedo channels. |
 
 | `stage5_rig/rig_spec.py` | Derive and validate a skeleton from the component tree, so bones cannot drift from the geometry. |
 | `stage5_rig/geodesic_skinning.py` | Vertex weights from distance measured through the solid; keeps rigid roles out of smooth skinning. |
