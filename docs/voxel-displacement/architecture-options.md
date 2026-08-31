@@ -56,7 +56,9 @@ document and independently encoded chunks. Each fixed 8³ chunk contains:
 It does not yet define a multi-chunk file container, source provenance envelope, palettes, clips, or
 renderer metadata. Occupancy is the final post-displacement location; a future cell-population step
 must resolve texture height steps before encoding rather than asking traversal to move a hit. The
-Python texture bake does not yet populate these chunks.
+The Python static OBJ bridge populates these chunks and resolves height steps before occupancy. The
+Three.js reference under `integrations/voxel_displacement/reference/` consumes the logical document
+with an `InstancedMesh`; it is a CPU-produced compatibility view, not the proposed traversal shader.
 
 A future canonical bundle should remain renderer-independent and deterministic. One proposed
 envelope is:

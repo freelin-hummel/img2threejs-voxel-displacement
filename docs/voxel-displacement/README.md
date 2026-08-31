@@ -15,6 +15,7 @@ The name is deliberately qualified. Daniel Schroeder has published the visual go
 | [WebGPU and Three.js](webgpu-threejs.md) | Implementing storage, traversal, depth, TSL materials, and a qualified fallback. |
 | [Sources and evidence](sources.md) | Reviewing primary papers, official documentation, public prototypes, licenses, and evidence labels. |
 | [Cross-project adoption](cross-project-adoption.md) | Moving the capability into another project without copying hidden assumptions or unverified claims. |
+| [Runtime evidence](runtime-evidence.md) | Reproducible SceneProof receipt for the static OBJ-to-VXD proxy slice. |
 
 ## What the evidence supports
 
@@ -35,12 +36,16 @@ The practical implication is a multi-track fork, not a universal “voxelize” 
 
 ## Recommended first architecture
 
-Everything in this section is a **speculative project design** until implemented and qualified in this checkout. Schroeder disclosed bounding-box plus 64-tree traversal for voxelized objects, not for his unpublished environment-displacement path.
+The conversion and proxy items called out below are now partially implemented and qualified only at
+the CPU/reference level. The production traversal items remain **speculative project design** until
+implemented and qualified in this checkout. Schroeder disclosed bounding-box plus 64-tree traversal
+for voxelized objects, not for his unpublished environment-displacement path.
 
 The first complete vertical slice should:
 
 - keep the original Three.js object, hierarchy, rig metadata, pivots, sockets, and colliders as source and gameplay authority;
-- conservatively bake one static object to surface voxels in a worker;
+- conservatively bake one static OBJ object to surface voxels in the forge (worker cancellation is
+  still open);
 - store occupancy and shading attributes in object-local 8³ bricks behind a compact top-level directory;
 - render a bounding-box proxy whose TSL fragment logic performs two-level DDA and writes the actual hit depth;
 - retain an explicit raster fallback for browsers or devices that cannot run the storage-buffer traversal;
@@ -71,4 +76,7 @@ A first milestone is credible only when all of the following are true:
 - browser evidence records target device, browser, Three.js revision, resolution, voxel count, GPU memory, and frame time;
 - source provenance, conversion recipe, warnings, and unsupported material/animation features ship with the asset.
 
-Continue with [foundations and terminology](foundations.md), then use the decision matrix in [architecture options](architecture-options.md).
+The current static-OBJ/Three.js reference evidence is a useful Level 2–3 checkpoint, not the initial
+acceptance target: it still lacks worker cancellation, scene-depth composition, GLB/animation
+conversion, and GPU traversal evidence. Continue with [foundations and terminology](foundations.md),
+then use the decision matrix in [architecture options](architecture-options.md).

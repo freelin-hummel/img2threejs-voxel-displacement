@@ -111,9 +111,10 @@ python3 forge/stage3_build/bake_voxel_displacement.py \
 ```
 
 The checked-in milestone provides input routing, OBJ/GLB inspection, a deterministic texture bake
-(whole-voxel height, continuous height, provisional texture-space normals, optional albedo), and the initial VXD
-chunk codec. It does **not** yet provide arbitrary-mesh shell mapping, prop voxelization, animation
-frame baking, or a WebGPU hierarchical-DDA renderer. Daniel Schroeder's implementation is not
+(whole-voxel height, continuous height, provisional texture-space normals, optional albedo), a
+conservative static-OBJ surface voxelizer that resolves height steps into final cells, the initial
+VXD chunk codec, and a Three.js `InstancedMesh` reference proxy. It does **not** yet provide GLB
+buffer extraction, animation frame baking, or a WebGPU hierarchical-DDA renderer. Daniel Schroeder's implementation is not
 public, so this fork reproduces published principles and must earn parity through its own runtime
 evidence. The consolidated, cross-project research wiki begins at
 [`docs/voxel-displacement/README.md`](docs/voxel-displacement/README.md).

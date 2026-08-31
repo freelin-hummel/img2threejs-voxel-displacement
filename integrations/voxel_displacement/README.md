@@ -44,26 +44,29 @@ The complete chunk layout is:
 | 24 | 64 | occupancy bitset; bit `x + 8 * (y + 8 * z)` |
 | 88 | `8 * count` | occupied-cell attributes in ascending bit-index order |
 
-## Not implemented yet
+## Current boundary
 
-This package does **not** yet voxelize triangle meshes, populate VXD chunks from the forge texture
-bake, build animation-frame chunks, stream or compress a multi-chunk container, select LODs, upload
-GPU buffers, draw voxels, or integrate with the img2threejs generator/showcase. The repository's
-Python forge can already create renderer-neutral height, whole-step, normal, and albedo channels;
-the bridge from those 2D channels to occupied VXD cells remains a separate implementation step.
-During that future cell-population step, texture `heightSteps` must be resolved into final occupied
-cell coordinates, including any collision/deduplication policy. `heightSteps` is conversion input;
-it is not stored as a post-occupancy displacement attribute in VXD v1. No visual result or renderer
-performance claim follows from these contracts and codec tests.
+The Python forge now has a deterministic static-OBJ surface voxelizer and writes final occupied cells
+into this logical VXD document. The package also includes a source-owned Three.js
+`InstancedMesh` reference renderer under [`reference/`](reference/), exercised with SceneProof. The
+renderer is a compatibility/proxy view, not the production traversal path.
+
+This package does **not** yet build GLB mesh buffers, materialize skin/morph poses, build animation
+frame chunks, stream or compress a multi-chunk container, select LODs, upload storage buffers, or
+perform WebGPU traversal. The forge's 2D texture bake remains useful independently: texture
+`heightSteps` are conversion input and must be resolved into final occupied cell coordinates before
+VXD encoding; traversal never applies a second displacement. No renderer-performance or
+Schroeder-parity claim follows from these contracts, codec tests, or the proxy screenshot.
 
 Those later layers should consume VXD rather than changing its meaning for a particular renderer:
 
 ```text
 procedural source mesh + independent material maps
   -> forge displacement texture bake (implemented for height/albedo textures)
-  -> mesh projection / surface voxelization resolves heightSteps into final cells (not implemented)
+  -> static OBJ surface voxelizer resolves heightSteps into final cells (implemented in forge)
   -> validated VXD chunks (implemented here)
-  -> renderer adapter / animation player (not implemented)
+  -> Three.js InstancedMesh reference proxy (implemented under reference/)
+  -> WebGPU traversal / animation player (not implemented)
 ```
 
 ## Development

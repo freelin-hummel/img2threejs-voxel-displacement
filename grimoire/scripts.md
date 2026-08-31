@@ -68,6 +68,24 @@ means invocation or file failure. `planned` names a real future conversion mode,
 runtime capability. Generated references are always external image evidence; the planner never
 calls ImageGen or approves pixels.
 
+## stage3_build/voxelize_obj.py
+
+Implemented static-OBJ surface conversion for `surface-displacement` and `surface-voxel-mesh` plans.
+It parses deterministic triangle/UV/normal data, resolves nearest-clamped height steps along source
+normals before occupancy, tests candidate cells with a conservative triangle-box SAT, samples albedo
+at the closest triangle point, and writes final occupied cells in the VXD v1 logical contract.
+
+```bash
+python3 forge/stage3_build/voxelize_obj.py \
+  --plan voxel-intake.json --longest-axis-voxels 64 \
+  --out object.voxel-object-bake.json
+```
+
+The converter is static OBJ only. It refuses missing UVs when a texture is supplied, enforces cell
+and candidate budgets, retains source hashes, and records GLB extraction, animation, binary-container,
+and WebGPU work as unimplemented. Use [`integrations/voxel_displacement/reference/`](../integrations/voxel_displacement/reference/)
+for the Three.js proxy renderer and SceneProof evidence path.
+
 ## stage3_build/bake_voxel_displacement.py
 
 Implemented texture-bake slice for `surface-displacement` and `voxel-displacement-material` plans.

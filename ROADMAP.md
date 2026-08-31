@@ -27,7 +27,7 @@ verifiable behavior rather than an assumed port.
 | Milestone | State | Deliverable | Acceptance boundary |
 | --- | --- | --- | --- |
 | VD-0 Intake and contract | In progress | Prompt/OBJ/GLB/texture routing, Codex ImageGen reference brief, deterministic height/provisional-normal/albedo bake, final-occupancy VXD chunk codec, shared wiki | Pure-Python and codec tests; no visual-parity claim |
-| VD-1 Static surface voxels | Planned | Conservative triangle-box surface voxelizer, material sampling, palette and source-normal transfer, worker cancellation | Golden fixtures, byte-identical output, source-to-voxel error and browser reference renderer |
+| VD-1 Static surface voxels | In progress | Conservative triangle-box surface voxelizer for static OBJ, texture-to-final-cell bridge, source attributes, VXD JSON output, and Three.js reference proxy | Golden fixtures, byte-identical output, source-to-voxel error, SceneProof render; GLB and worker cancellation remain open |
 | VD-2 Static surface displacement | Planned | Heightfield and constrained UV-surface displacement, whole-cell geometry plus continuous-height lighting, thickness/curvature rejection | Silhouette/depth/normal captures and failure heatmaps on safe and unsafe meshes |
 | VD-3 Animation frames | Planned | Shared-grid posed-frame baking, root-motion metadata, fixed-rate playback and frame deduplication | Temporal stability, frame timing, memory, and canonical animation screenshots |
 | VD-4 Production traversal | Planned | Chunked WebGPU/TSL proxy-box traversal, correct hit depth, LOD aggregates, explicit WebGL fallback | Target-hardware frame time, GPU memory, readback screenshots, fallback parity and rollback |

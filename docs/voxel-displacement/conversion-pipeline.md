@@ -6,16 +6,24 @@ The converter should have distinct routes with shared analysis, provenance, mate
 
 ## Current repository slice
 
-The current deterministic helpers implement planning plus a texture-field bake:
+The current deterministic helpers implement planning, a texture-field bake, and a static OBJ
+surface-to-VXD bridge:
 
 - `forge/stage1_intake/plan_voxel_displacement.py` probes prompt, OBJ, GLB, albedo, and height inputs and chooses a route.
 - `forge/stage3_build/bake_voxel_displacement.py` writes continuous 8-bit height, signed whole-voxel steps, an octahedral normal field, optional RGBA albedo, provenance, hashes, and an honesty statement.
+- `forge/stage3_build/voxelize_obj.py` and `forge/_shared/voxel_mesh.py` parse static OBJ triangles,
+  resolve optional height steps along source normals before occupancy, conservatively mark touched
+  cells with a triangle-box SAT, sample albedo at the closest triangle point, and emit final VXD
+  logical chunks with source hashes and budgets.
 - `forge/_shared/voxel_displacement.py` holds the compressed-channel codec, height-field logic, and ImageGen reference brief.
 - `integrations/voxel_displacement/` defines and tests the separate VXD v1 logical document and deterministic 8³ binary chunk codec.
+- `integrations/voxel_displacement/reference/scene.js` renders final VXD cells through a Three.js
+  `InstancedMesh` proxy; the manual page and SceneProof command provide a source-grounded visual check.
 
-The texture-bake JSON and binary VXD chunks are deliberately different artifacts. Population of VXD
-cells from baked textures or meshes is not implemented yet. This is a useful first boundary, not an
-arbitrary-mesh renderer or object voxelizer.
+The texture-bake JSON and binary VXD chunks are deliberately different artifacts. Static OBJ
+population is now implemented, but this remains a bounded reference converter rather than a general
+GLB/object runtime: GLB buffer extraction, animation pose baking, binary multi-chunk packaging, and
+WebGPU traversal are still open.
 
 Two current semantics must remain explicit:
 
@@ -191,7 +199,7 @@ Whole JSON artifacts may include absolute paths or platform-specific decoder met
 ## Staged delivery
 
 1. **Contract slice:** current planner and texture-field bake, corrected documentation semantics, deterministic fixtures, and explicit renderer-neutral artifact.
-2. **Static object slice:** conservative surface voxelizer, compact 8³ chunks, source attributes, reference renderer, and round trip.
+2. **Static object slice:** conservative static-OBJ surface voxelizer, compact 8³ chunks, source attributes, Three.js reference proxy, and round trip (implemented; GLB and worker cancellation remain).
 3. **Renderer slice:** proxy-box WebGPU traversal, true depth, browser evidence, and explicit fallback.
 4. **Static displacement slice:** controlled heightfield projection, then gated manifold narrow-band experiments.
 5. **Animation slice:** rigid hierarchy first, then fixed-rate baked skinned/morphed frames.

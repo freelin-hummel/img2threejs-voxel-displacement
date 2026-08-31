@@ -59,11 +59,14 @@ Before adding a consumer project, answer:
 
 ## Current artifact caution
 
-The repository’s current v1 texture bake is Level 1 only. Consumers must not reinterpret its metadata as proof of:
+The repository’s current texture bake is Level 1, while a static OBJ converted with
+`stage3_build/voxelize_obj.py` is Level 2 and the source-owned Three.js proxy is Level 3 only when
+the recorded browser evidence is carried with the asset. Consumers must not reinterpret either
+artifact as proof of:
 
 - linear-light or physically calibrated height;
 - world-scale or tangent-basis-correct normals;
-- arbitrary mesh shell displacement;
+- GLB or arbitrary mesh shell displacement beyond the bounded static-OBJ converter;
 - conservative object voxelization;
 - animated voxel frames;
 - WebGPU rendering;

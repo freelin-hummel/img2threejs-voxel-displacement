@@ -20,6 +20,7 @@ from forge._shared.voxel_displacement import (
     decode_channel,
     height_fields,
 )
+from forge._shared.voxel_mesh import triangle_box_overlap, voxelize_obj
 from forge.stage1_intake.plan_voxel_displacement import build_plan, probe_obj
 from forge.stage1_intake.probe_glb import parse_glb
 from forge.stage3_build.bake_voxel_displacement import bake, validate_bake
@@ -427,6 +428,120 @@ class BakeContracts(unittest.TestCase):
             self.assertTrue(output.is_file())
             self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["schema"], BAKE_SCHEMA)
             self.assertFalse(output.with_suffix(".json.tmp").exists())
+
+
+class SurfaceVoxelizationContracts(unittest.TestCase):
+    def test_triangle_box_overlap_is_conservative_and_rejects_separated_cells(self) -> None:
+        triangle = ((-0.4, -0.4, 0.0), (0.4, -0.4, 0.0), (0.0, 0.4, 0.0))
+
+        self.assertTrue(triangle_box_overlap(triangle, (0.0, 0.0, 0.0), 0.5))
+        self.assertFalse(triangle_box_overlap(triangle, (0.0, 0.0, 2.0), 0.5))
+
+    def test_obj_voxelization_emits_final_cells_and_samples_height_and_albedo(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mesh = root / "plane.obj"
+            height = root / "height.png"
+            albedo = root / "albedo.png"
+            write_plane_obj(mesh)
+            write_png(height, 4, 4, lambda x, y: (255, 255, 255, 255))
+            write_png(albedo, 4, 4, lambda x, y: (220, 40, 20, 255))
+
+            first = voxelize_obj(
+                mesh_path=mesh,
+                height_path=height,
+                albedo_path=albedo,
+                longest_axis_voxels=8,
+                min_height_voxels=0,
+                max_height_voxels=2,
+            )
+            second = voxelize_obj(
+                mesh_path=mesh,
+                height_path=height,
+                albedo_path=albedo,
+                longest_axis_voxels=8,
+                min_height_voxels=0,
+                max_height_voxels=2,
+            )
+
+        self.assertEqual(first, second)
+        self.assertEqual(first["representation"], "surface-voxel-mesh")
+        self.assertEqual(first["statistics"]["occupiedCellCount"], sum(len(chunk["cells"]) for chunk in first["vxd"]["chunks"]))
+        self.assertGreater(first["statistics"]["occupiedCellCount"], 0)
+        cell = first["vxd"]["chunks"][0]["cells"][0]
+        self.assertEqual(cell["attributes"]["albedo"], [220, 40, 20, 255])
+        self.assertEqual(cell["attributes"]["flags"], 0)
+        self.assertEqual(first["recipe"]["heightDisplacement"], "vertex-normal-whole-voxel-steps-before-occupancy")
+
+    def test_texture_conversion_requires_uvs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mesh = root / "plane.obj"
+            height = root / "height.png"
+            write_plane_obj(mesh, with_uv=False)
+            write_png(height, 2, 2, lambda x, y: (128, 128, 128, 255))
+
+            with self.assertRaisesRegex(ValueError, "needs UV"):
+                voxelize_obj(mesh_path=mesh, height_path=height, longest_axis_voxels=8)
+
+    def test_static_converter_rejects_glb_until_buffer_extraction_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            mesh = Path(directory) / "triangle.glb"
+            write_triangle_glb(mesh)
+
+            with self.assertRaisesRegex(ValueError, "accepts OBJ only"):
+                voxelize_obj(mesh_path=mesh, longest_axis_voxels=8)
+
+    def test_cli_honors_plan_height_range_and_emits_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mesh = root / "plane.obj"
+            height = root / "height.png"
+            plan_path = root / "intake.json"
+            output = root / "object.json"
+            write_plane_obj(mesh)
+            write_png(height, 2, 2, lambda x, y: (255, 255, 255, 255))
+            plan = build_plan(
+                name="ranged-wall",
+                asset_role="environment",
+                mesh_path=mesh,
+                height_path=height,
+                min_height_voxels=0,
+                max_height_voxels=2,
+            )
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "forge" / "stage3_build" / "voxelize_obj.py"),
+                    "--plan",
+                    str(plan_path),
+                    "--longest-axis-voxels",
+                    "8",
+                    "--out",
+                    str(output),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            artifact = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(artifact["recipe"]["heightVoxelRange"], [0, 2])
+            self.assertEqual(artifact["sources"]["mesh"]["sha256"], plan["inputs"]["mesh"]["sha256"])
+
+    def test_albedo_alpha_is_blocked_until_cutout_occupancy_is_defined(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mesh = root / "plane.obj"
+            albedo = root / "masked.png"
+            write_plane_obj(mesh)
+            write_png(albedo, 2, 2, lambda x, y: (220, 40, 20, 0 if x == 0 else 255))
+
+            with self.assertRaisesRegex(ValueError, "alpha-cutout occupancy"):
+                voxelize_obj(mesh_path=mesh, albedo_path=albedo, longest_axis_voxels=8)
 
 
 if __name__ == "__main__":

@@ -13,7 +13,10 @@ WebGPU can support the proposed object-local voxel traversal, but the project st
 - Official Three examples demonstrate [compute storage textures](https://github.com/mrdoob/three.js/blob/dev/examples/webgpu_compute_texture.html), [storage buffers](https://threejs.org/examples/webgpu_storage_buffer.html), and [volume raymarching](https://threejs.org/examples/webgpu_volume_perlin.html).
 - WebGPURenderer remains experimental in the official manual. Pin the Three revision and browser qualification target.
 
-These are **established official API facts**. The renderer design below is **speculative for this fork** until exercised in the target browser.
+These are **established official API facts**. The renderer design below is **speculative for this fork** until exercised in the target browser. The current checkout has a CPU-produced
+`InstancedMesh` proxy at `integrations/voxel_displacement/reference/scene.js`; its SceneProof render
+is a fallback/reference check and does not qualify storage-buffer traversal, true hit depth, or
+WebGPU performance.
 
 WebGPU also requires a supported browser/device and an appropriate secure context. Capability detection must precede asset upload, and the selected adapter features and limits belong in the runtime receipt.
 

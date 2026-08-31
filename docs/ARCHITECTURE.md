@@ -50,15 +50,19 @@ for the existing visual-hull or SDF voxel grids:
 object prompt -> Codex ImageGen brief -> validated multi-view images -> normal sculpt intake
 material prompt -> Codex ImageGen brief -> validated albedo/height candidates -> texture calibration
 OBJ/GLB + height/albedo -> suitability route -> deterministic voxel-displacement texture bake
-thin/static OBJ/GLB -> conservative surface-shell conversion (planned)
+static OBJ + optional height/albedo -> conservative surface-shell conversion (implemented)
+static GLB -> conservative surface-shell conversion (planned)
 skinned/morphing GLB -> fixed-pose voxel-frame bake (planned)
-VXD asset -> chunked WebGPU traversal + explicit fallback (planned)
+VXD asset -> Three.js InstancedMesh reference proxy (implemented) -> chunked WebGPU traversal + explicit fallback (planned)
 ```
 
 `forge/stage1_intake/plan_voxel_displacement.py` owns source provenance and representation routing.
 `forge/stage3_build/bake_voxel_displacement.py` owns the implemented texture vertical slice: whole
 voxel height steps for geometry, continuous height and provisional texture-space octahedral normals,
-and optional sRGB albedo. The isolated `integrations/voxel_displacement/` package owns the portable
+and optional sRGB albedo. `forge/stage3_build/voxelize_obj.py` and `forge/_shared/voxel_mesh.py`
+own the implemented static OBJ bridge: vertex-normal height displacement happens before conservative
+triangle-box occupancy, then sampled albedo and source normals are attached to final cells.
+The isolated `integrations/voxel_displacement/` package owns the portable
 VXD contract so the stdlib forge core does not acquire browser dependencies.
 
 The low-poly source remains gameplay authority for collision, navigation, pivots, sockets, and

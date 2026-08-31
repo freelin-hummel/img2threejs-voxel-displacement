@@ -12,7 +12,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "reference"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -25,5 +26,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
   }
 }
