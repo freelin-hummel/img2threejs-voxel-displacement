@@ -180,6 +180,55 @@ def parse_obj_triangles(path: Path, *, require_uv: bool = False) -> tuple[list[O
     return triangles, warnings
 
 
+def parse_obj_material_palette(path: Path) -> dict[int, tuple[int, int, int, int]]:
+    """Resolve OBJ material slots to diffuse RGBA colors from referenced MTL files."""
+
+    path = path.expanduser().resolve()
+    material_names: list[str] = []
+    libraries: list[str] = []
+    for original in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        fields = original.strip().split()
+        if not fields:
+            continue
+        if fields[0] == "mtllib":
+            libraries.extend(fields[1:])
+        elif fields[0] == "usemtl" and len(fields) > 1:
+            name = " ".join(fields[1:])
+            if name not in material_names:
+                material_names.append(name)
+
+    diffuse_by_name: dict[str, tuple[int, int, int, int]] = {}
+    for library in libraries:
+        material_path = (path.parent / library).resolve()
+        if not material_path.is_file():
+            continue
+        active: str | None = None
+        for original in material_path.read_text(encoding="utf-8", errors="replace").splitlines():
+            fields = original.strip().split()
+            if not fields:
+                continue
+            if fields[0] == "newmtl" and len(fields) > 1:
+                active = " ".join(fields[1:])
+            elif fields[0] == "Kd" and active is not None and len(fields) >= 4:
+                try:
+                    values = [float(value) for value in fields[1:4]]
+                except ValueError:
+                    continue
+                if not all(math.isfinite(value) for value in values):
+                    continue
+                if max(values) <= 1.0:
+                    values = [value * 255.0 for value in values]
+                diffuse_by_name[active] = tuple(
+                    max(0, min(255, round(value))) for value in values
+                ) + (255,)
+
+    return {
+        slot: diffuse_by_name[name]
+        for slot, name in enumerate(material_names)
+        if name in diffuse_by_name
+    }
+
+
 def _round_vec3(value: Vec3) -> tuple[float, float, float]:
     return tuple(round(component, 12) for component in value)  # type: ignore[return-value]
 
@@ -321,6 +370,7 @@ def voxelize_obj(
         raise ValueError("voxel candidate budgets must be positive")
     require_uv = height_path is not None or albedo_path is not None
     triangles, warnings = parse_obj_triangles(mesh_path, require_uv=require_uv)
+    material_palette = parse_obj_material_palette(mesh_path)
     base_positions = [position for triangle in triangles for position in triangle.positions]
     base_minimum = [min(position[axis] for position in base_positions) for axis in range(3)]
     base_maximum = [max(position[axis] for position in base_positions) for axis in range(3)]
@@ -427,7 +477,7 @@ def voxelize_obj(
                     albedo = (
                         _sample_nearest(albedo_data["width"], albedo_data["height"], albedo_pixels or [], uv)
                         if albedo_data
-                        else (190, 190, 190, 255)
+                        else material_palette.get(triangle.material, (190, 190, 190, 255))
                     )
                     cells[global_coordinate] = VoxelCell(
                         coordinate=global_coordinate,
@@ -504,6 +554,10 @@ def voxelize_obj(
         },
         "chunks": chunks,
     }
+    if material_palette:
+        vxd["materialPalette"] = {
+            str(slot): list(color) for slot, color in sorted(material_palette.items())
+        }
     return {
         "schema": VOXEL_OBJECT_SCHEMA,
         "kind": "voxel-object-bake",
@@ -534,6 +588,9 @@ def voxelize_obj(
             "gridCellCount": total_cells,
         },
         "vxd": vxd,
+        "materialPalette": {
+            str(slot): list(color) for slot, color in sorted(material_palette.items())
+        },
         "warnings": sorted(set(warnings)),
         "unimplemented": [
             "GLB mesh-buffer extraction and skin/morph pose materialization",

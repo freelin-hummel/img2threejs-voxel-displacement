@@ -85,9 +85,9 @@ has 1,184 non-degenerate triangles; the converter emits 5,012 occupied cells acr
 [`dark-fantasy-tree-isometric-voxel.png`](../../integrations/voxel_displacement/reference/evidence/dark-fantasy-tree-isometric-voxel.png)
 is the visually inspected proxy result. The OBJ is a deterministic authored fixture guided by the
 sheet; sprite-sheet-to-mesh/depth extraction is intentionally not part of this route. This proves
-the art-direction reference → renderer-compatible low-poly OBJ → final-cell surface VXD → Three.js
-raster proxy path only; it does not prove image-to-mesh extraction, GLB extraction, WebGPU traversal,
-animation, or Schroeder parity.
+the art-direction reference → renderer-compatible low-poly OBJ + MTL palette → final-cell surface VXD
+→ Three.js raster proxy path only; it does not prove image-to-mesh extraction, GLB extraction, WebGPU
+traversal, animation, or Schroeder parity.
 The companion [`dark-fantasy-tree-isometric-voxel-128.png`](../../integrations/voxel_displacement/reference/evidence/dark-fantasy-tree-isometric-voxel-128.png)
 is the same proxy rendered at the 128×128 inspection size used by the reference sheet; it is a
 presentation capture, not a change to the voxel grid resolution.

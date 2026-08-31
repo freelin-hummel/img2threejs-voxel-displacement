@@ -20,7 +20,7 @@ from forge._shared.voxel_displacement import (
     decode_channel,
     height_fields,
 )
-from forge._shared.voxel_mesh import triangle_box_overlap, voxelize_obj
+from forge._shared.voxel_mesh import parse_obj_material_palette, triangle_box_overlap, voxelize_obj
 from forge.stage1_intake.plan_voxel_displacement import build_plan, probe_obj
 from forge.stage1_intake.probe_glb import parse_glb
 from forge.stage3_build.bake_voxel_displacement import bake, validate_bake
@@ -174,6 +174,17 @@ class LowPolyTreeFixtureContracts(unittest.TestCase):
         self.assertEqual({material for material, _corners in first.faces}, {"bark", "leaf", "moss", "rune"})
         self.assertGreater(len(first.faces), 500)
         self.assertTrue(all(len({corner[0] for corner in corners}) == len(corners) for _material, corners in first.faces))
+
+    def test_dark_fantasy_tree_fixture_carries_material_colors(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            obj = Path(directory) / "tree.obj"
+            build_tree().write(obj)
+            palette = parse_obj_material_palette(obj)
+
+        self.assertEqual(palette[0], (133, 133, 133, 255))
+        self.assertEqual(palette[1], (79, 97, 115, 255))
+        self.assertEqual(palette[2], (71, 61, 87, 255))
+        self.assertEqual(palette[3], (219, 135, 41, 255))
 
 
 class IntakeRoutingContracts(unittest.TestCase):
@@ -494,6 +505,28 @@ class SurfaceVoxelizationContracts(unittest.TestCase):
         self.assertEqual(cell["attributes"]["albedo"], [220, 40, 20, 255])
         self.assertEqual(cell["attributes"]["flags"], 0)
         self.assertEqual(first["recipe"]["heightDisplacement"], "vertex-normal-whole-voxel-steps-before-occupancy")
+
+    def test_obj_mtl_diffuse_colors_flow_into_vxd_when_no_texture_is_supplied(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            mesh = Path(directory) / "tree.obj"
+            build_tree().write(mesh)
+            artifact = voxelize_obj(mesh_path=mesh, longest_axis_voxels=12)
+
+        expected = {
+            "0": [133, 133, 133, 255],
+            "1": [79, 97, 115, 255],
+            "2": [71, 61, 87, 255],
+            "3": [219, 135, 41, 255],
+        }
+        self.assertEqual(artifact["materialPalette"], expected)
+        self.assertEqual(artifact["vxd"]["materialPalette"], expected)
+        emitted = {
+            tuple(cell["attributes"]["albedo"])
+            for chunk in artifact["vxd"]["chunks"]
+            for cell in chunk["cells"]
+        }
+        self.assertIn(tuple(expected["0"]), emitted)
+        self.assertNotIn((190, 190, 190, 255), emitted)
 
     def test_texture_conversion_requires_uvs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

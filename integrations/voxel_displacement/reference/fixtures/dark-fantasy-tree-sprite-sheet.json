@@ -7,6 +7,12 @@
   "targetAssetProfile": "object-conventional-surface-voxel-mesh",
   "spriteRole": "art-direction-and-silhouette-reference; not a direct voxel-volume source",
   "conversionPolicy": "author-or-fit a renderer-compatible triangle mesh, then bake final surface voxels",
+  "materialPalette": {
+    "bark": [133, 133, 133, 255],
+    "leaf": [79, 97, 115, 255],
+    "moss": [71, 61, 87, 255],
+    "rune": [219, 135, 41, 255]
+  },
   "template": {
     "path": "../assets/templates/voxel-sprite-sheet-template-128.png",
     "width": 128,
