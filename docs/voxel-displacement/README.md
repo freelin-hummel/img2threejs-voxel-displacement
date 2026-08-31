@@ -34,6 +34,12 @@ The practical implication is a multi-track fork, not a universal “voxelize” 
 | Rigid hierarchy | Voxelize each rigid part once and preserve node transforms. |
 | Skinned or morphed character | Bake selected posed frames into one shared object-local grid. |
 
+The ImageGen 128×128 sprite sheet is an authoring/reference aid, not a replacement for the model
+source. For a small, thin, or highly curved object such as the dark-fantasy tree, use a
+renderer-compatible triangle mesh and bake a conventional surface voxel mesh. Reserve displacement
+maps for substantial static surfaces whose mesh thickness and curvature can tolerate the selected
+voxel-scale offsets.
+
 ## Recommended first architecture
 
 The conversion and proxy items called out below are now partially implemented and qualified only at

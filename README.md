@@ -95,12 +95,14 @@ different source families without pretending they are the same algorithm:
 | Static detailed or thin OBJ/GLB | Baked surface-voxel mesh | Props, foliage, and shapes that displacement would punch through or collapse |
 | Skinned/morphing GLB | Discrete baked voxel pose frames | Sprite-like character animation without continuous blending |
 
-A text prompt is also valid intake. The planner emits a template-driven single 128×128 pixel-art
-construction sheet for Codex's built-in `$imagegen` workflow requesting `gpt-image-2`; the caller
-must verify the active route. Object references use one supplied five-slot layout template with
-locked orthographic panels (front/right/back/left/top at explicit azimuth/elevation angles). They
-must pass readability, pixel scale, viewpoint, transparency/checkerboard, and cross-panel identity
-checks.
+A text prompt is also valid intake, but it is reference generation—not voxel geometry. The planner
+can ask Codex's built-in `$imagegen` workflow for `gpt-image-2` to produce one template-driven
+128×128 pixel-art construction sheet; the caller must verify the active route. Object references
+use one supplied five-slot layout template with locked orthographic panels (front/right/back/left/top
+at explicit azimuth/elevation angles). After review, the reference is handed to normal model intake:
+author or fit the renderer-compatible low-poly triangle mesh, then route that model to surface
+displacement, conventional surface voxelization, or baked pose frames. The sprite sheet is never
+treated as a depth volume or direct voxel source.
 Material references instead require seam, channel-meaning, and relief-consistency review.
 
 ```bash
@@ -122,8 +124,8 @@ public, so this fork reproduces published principles and must earn parity throug
 evidence. The consolidated, cross-project research wiki begins at
 [`docs/voxel-displacement/README.md`](docs/voxel-displacement/README.md).
 
-The first prompt-to-voxel demonstration is the checked-in dark-fantasy tree reference set and
-deterministic low-poly fixture in
+The first prompt-reference-to-model demonstration is the checked-in dark-fantasy tree art-direction
+sheet plus deterministic renderer-compatible low-poly fixture in
 [`integrations/voxel_displacement/reference/`](integrations/voxel_displacement/reference/).
 
 ### Subjects and detail accuracy

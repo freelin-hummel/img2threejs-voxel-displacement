@@ -134,7 +134,12 @@ class ReferenceBriefContracts(unittest.TestCase):
 
         self.assertEqual(brief["requestedModel"], "gpt-image-2")
         self.assertEqual(brief["executionMode"], "built-in-tool")
-        self.assertEqual(brief["strategy"], "single-template-sprite-sheet")
+        self.assertEqual(brief["strategy"], "optional-template-sprite-reference")
+        self.assertEqual(
+            brief["targetAssetProfile"],
+            "renderer-compatible-low-poly-triangle-mesh-for-conventional-surface-voxel-mesh",
+        )
+        self.assertIn("not a direct voxel-volume source", brief["referenceRole"])
         self.assertEqual([step["id"] for step in brief["workflow"]], ["sprite-sheet"])
         self.assertEqual(brief["workflow"][0]["toolInvocation"], "$imagegen")
         self.assertEqual(brief["workflow"][0]["template"]["width"], 128)

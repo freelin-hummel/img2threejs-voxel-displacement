@@ -53,7 +53,8 @@ one of four non-interchangeable routes:
 - `surface-displacement`: static UV mesh plus height texture;
 - `surface-voxel-mesh`: static props and thin geometry;
 - `baked-surface-voxel-frames`: skin/morph animation sampled into discrete poses; or
-- `generated-reference-intake`: text prompt requiring the emitted Codex ImageGen workflow.
+- `generated-reference-intake`: text prompt requiring an optional Codex ImageGen art-direction
+  reference before renderer-compatible model intake.
 
 ```bash
 python3 forge/stage1_intake/plan_voxel_displacement.py \
@@ -69,7 +70,8 @@ runtime capability. Generated references are always external image evidence; the
 calls ImageGen or approves pixels. For object prompts, the emitted brief requires one supplied
 128×128 five-slot sprite-sheet template with locked orthographic construction panels: front `(0°,
 0°)`, right `(90°, 0°)`, back `(180°, 0°)`, left `(270°, 0°)`, and top `(0°, 90°)` as
-azimuth/elevation.
+azimuth/elevation. The sheet is an art-direction aid only; the next required artifact is an
+authored or fitted low-poly triangle mesh routed to surface displacement or surface voxelization.
 
 ## stage3_build/voxelize_obj.py
 
@@ -91,8 +93,9 @@ for the Three.js proxy renderer and SceneProof evidence path.
 
 ## stage3_build/generate_low_poly_tree_obj.py
 
-Deterministic low-poly dark-fantasy tree fixture used to exercise the prompt-reference → OBJ → VXD
-path. It is an authored test source, not an inverse reconstruction of the generated images.
+Deterministic renderer-compatible low-poly dark-fantasy tree fixture used to exercise the
+art-direction reference → OBJ → VXD path. It is an authored test source, not an inverse
+reconstruction of the generated images.
 
 ```bash
 python3 forge/stage3_build/generate_low_poly_tree_obj.py --out /tmp/dark-fantasy-tree.obj

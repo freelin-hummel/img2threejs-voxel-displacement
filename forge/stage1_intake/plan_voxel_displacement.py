@@ -8,7 +8,8 @@ displacement, and selects one of the distinct conversion tracks:
 * static UV mesh plus height texture -> displaced environment surface;
 * static thin/prop mesh -> baked surface-voxel object;
 * skinned or morphing mesh -> baked voxel animation frames; or
-* text prompt -> Codex ImageGen reference workflow before normal intake.
+* text prompt -> optional Codex ImageGen art-direction reference -> authored or
+  fitted renderer-compatible model intake before conversion.
 
 Pure Python 3.10+ standard library.  GLB inspection reuses probe_glb.py and
 image decoding reuses the existing deterministic intake decoder.
@@ -419,7 +420,7 @@ def choose_route(
 
     if prompt:
         next_actions.append("verify that the active Codex ImageGen route satisfies the requested gpt-image-2 model")
-        next_actions.append("run the Codex ImageGen anchor call")
+        next_actions.append("run the optional Codex ImageGen art-direction reference call")
         if asset_role == "material":
             next_actions.extend(
                 [
@@ -430,8 +431,9 @@ def choose_route(
         else:
             next_actions.extend(
                 [
-                    "derive and validate the requested reference views one at a time",
-                    "continue through normal img2threejs suitability and multi-view gates",
+                    "validate the locked orthographic reference panels for silhouette and proportions",
+                    "author or fit a renderer-compatible low-poly triangle mesh; do not voxelize the sprite sheet",
+                    "provide the mesh (and albedo/height data when applicable) for the selected displacement or surface-voxel route",
                 ]
             )
         return "generated-reference-intake", "needs-image-generation", findings, next_actions
@@ -494,6 +496,9 @@ def build_plan(
             "height": height,
         },
         "referenceGeneration": reference_brief,
+        "targetAssetProfile": (
+            reference_brief.get("targetAssetProfile") if reference_brief else None
+        ),
         "findings": findings,
         "warnings": sorted(set(warnings)),
         "nextActions": next_actions,

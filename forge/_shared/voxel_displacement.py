@@ -203,9 +203,12 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
 
     The built-in tool is intentionally invoked by the agent, not by deterministic
     forge code. Material references use several map/review outputs. Object,
-    environment, and character references use one template-driven 128x128
-    pixel-art construction sheet so the input is a sprite layout rather than a
-    cinematic render.
+    environment, and character references may use one template-driven 128x128
+    pixel-art construction sheet as an art-direction and silhouette reference.
+    The sheet is never the voxel source: the target asset remains a
+    renderer-compatible low-poly triangle mesh (plus the appropriate textures,
+    hierarchy, or animation data) that is routed into displacement or surface
+    voxelization.
     """
 
     normalized = " ".join(prompt.split())
@@ -377,7 +380,18 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
         "executionMode": "built-in-tool",
         "subjectKind": subject_kind,
         "sourcePrompt": normalized,
-        "strategy": "anchor-then-derived-views" if subject_kind == "material" else "single-template-sprite-sheet",
+        "strategy": "anchor-then-derived-views" if subject_kind == "material" else "optional-template-sprite-reference",
+        "targetAssetProfile": {
+            "material": "uv-material-heightfield-for-static-environment-surface-displacement",
+            "environment": "low-poly-uv-triangle-mesh-plus-albedo-height-for-surface-displacement",
+            "object": "renderer-compatible-low-poly-triangle-mesh-for-conventional-surface-voxel-mesh",
+            "character": "renderer-compatible-rigged-low-poly-mesh-for-baked-surface-voxel-frames",
+        }[subject_kind],
+        "referenceRole": (
+            "texture-candidate-and-relief-review"
+            if subject_kind == "material"
+            else "optional-art-direction-and-silhouette-reference; not a direct voxel-volume source"
+        ),
         "viewContract": {
             "anchorRole": "style-and-identity reference is optional; layout template is mandatory" if subject_kind != "material" else "style-and-identity-anchor",
             "template": workflow[0].get("template") if subject_kind != "material" else None,
@@ -391,7 +405,7 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
             "note": (
                 "Generated material maps are hypotheses, not calibrated measurements. Validate seams, channel meaning, and relief before baking."
                 if subject_kind == "material"
-                else "The sprite sheet is reference evidence, not proof of hidden-side geometry. Validate panel consistency before visual-hull or sculpt intake."
+                else "The sprite sheet is art-direction evidence, not proof of hidden-side geometry. Validate panel consistency before authoring or fitting the renderer-compatible model."
             ),
         },
     }

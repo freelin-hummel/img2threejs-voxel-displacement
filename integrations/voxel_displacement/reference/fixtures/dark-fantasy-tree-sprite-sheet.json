@@ -2,8 +2,11 @@
   "schema": "img2threejs.voxel-sprite-reference.v1",
   "requestedModel": "gpt-image-2",
   "executionMode": "built-in-tool",
-  "strategy": "single-template-sprite-sheet",
+  "strategy": "optional-template-sprite-reference",
   "subject": "dark fantasy ancient gnarled tree",
+  "targetAssetProfile": "object-conventional-surface-voxel-mesh",
+  "spriteRole": "art-direction-and-silhouette-reference; not a direct voxel-volume source",
+  "conversionPolicy": "author-or-fit a renderer-compatible triangle mesh, then bake final surface voxels",
   "template": {
     "path": "../assets/templates/voxel-sprite-sheet-template-128.png",
     "width": 128,
@@ -43,7 +46,8 @@
     "notes": [
       "This sheet is a low-resolution construction reference, not ground-truth geometry.",
       "Review branch topology and panel consistency before visual-hull or voxel occupancy extraction.",
-      "The checkerboard is visual backdrop pixels, not an alpha channel."
+      "The checkerboard is visual backdrop pixels, not an alpha channel.",
+      "Do not treat the sprite sheet as a depth volume; the tree's object route is conventional surface voxelization."
     ]
   }
 }
