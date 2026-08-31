@@ -95,11 +95,12 @@ different source families without pretending they are the same algorithm:
 | Static detailed or thin OBJ/GLB | Baked surface-voxel mesh | Props, foliage, and shapes that displacement would punch through or collapse |
 | Skinned/morphing GLB | Discrete baked voxel pose frames | Sprite-like character animation without continuous blending |
 
-A text prompt is also valid intake. The planner emits an anchor-plus-derived-reference brief for
-Codex's built-in `$imagegen` workflow requesting `gpt-image-2`; the caller must verify the active
-route. Object references use the anchor only for style/identity and request five locked orthographic
-construction views (front/right/back/left/top at explicit azimuth/elevation angles) for hidden
-geometry. They must pass readability, viewpoint, transparency, and cross-view identity checks.
+A text prompt is also valid intake. The planner emits a template-driven single 128×128 pixel-art
+construction sheet for Codex's built-in `$imagegen` workflow requesting `gpt-image-2`; the caller
+must verify the active route. Object references use one supplied five-slot layout template with
+locked orthographic panels (front/right/back/left/top at explicit azimuth/elevation angles). They
+must pass readability, pixel scale, viewpoint, transparency/checkerboard, and cross-panel identity
+checks.
 Material references instead require seam, channel-meaning, and relief-consistency review.
 
 ```bash

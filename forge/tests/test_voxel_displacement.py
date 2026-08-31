@@ -129,18 +129,19 @@ class HeightFieldContracts(unittest.TestCase):
 
 
 class ReferenceBriefContracts(unittest.TestCase):
-    def test_object_prompt_builds_anchor_and_five_locked_construction_views(self) -> None:
+    def test_object_prompt_builds_one_template_locked_sprite_sheet(self) -> None:
         brief = build_reference_brief("a brass clockwork beetle", subject_kind="object")
 
         self.assertEqual(brief["requestedModel"], "gpt-image-2")
         self.assertEqual(brief["executionMode"], "built-in-tool")
-        self.assertEqual([step["id"] for step in brief["workflow"]], ["anchor", "front", "right", "back", "left", "top"])
-        self.assertTrue(all(step["toolInvocation"] == "$imagegen" for step in brief["workflow"]))
-        self.assertIn("change only the camera viewpoint", brief["workflow"][1]["prompt"])
-        self.assertIn("azimuth 0 degrees and elevation 0 degrees", brief["workflow"][1]["prompt"])
-        self.assertIn("azimuth 0 degrees and elevation 90 degrees", brief["workflow"][5]["prompt"])
-        self.assertIn("transparent background", brief["workflow"][0]["prompt"])
+        self.assertEqual(brief["strategy"], "single-template-sprite-sheet")
+        self.assertEqual([step["id"] for step in brief["workflow"]], ["sprite-sheet"])
+        self.assertEqual(brief["workflow"][0]["toolInvocation"], "$imagegen")
+        self.assertEqual(brief["workflow"][0]["template"]["width"], 128)
+        self.assertIn("one 128x128 square sprite sheet", brief["workflow"][0]["prompt"])
+        self.assertIn("exact five-panel composition", brief["workflow"][0]["prompt"])
         self.assertEqual(brief["viewContract"]["constructionViews"][-1]["id"], "top")
+        self.assertEqual(brief["viewContract"]["constructionViews"][1]["azimuthDegrees"], 90)
 
     def test_empty_prompt_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "must not be empty"):

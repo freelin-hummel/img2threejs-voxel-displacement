@@ -2,6 +2,7 @@
   "schema": "img2threejs.voxel-reference-set.v1",
   "requestedModel": "gpt-image-2",
   "executionMode": "built-in-tool",
+  "status": "legacy-per-view-reference-set; superseded by dark-fantasy-tree-sprite-sheet.json",
   "subject": "dark fantasy ancient gnarled tree",
   "anchor": {
     "id": "anchor",

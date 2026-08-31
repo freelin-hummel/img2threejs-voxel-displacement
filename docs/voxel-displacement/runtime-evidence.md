@@ -45,18 +45,16 @@ sceneproof inspect integrations/voxel_displacement/reference/scene.js \
   --props integrations/voxel_displacement/reference/fixtures/mini.vxd.json
 ```
 
-## 2026-08-30 · ImageGen angle set through the low-poly tree E2E
+## 2026-08-30 · ImageGen sprite sheet through the low-poly tree E2E
 
-The prompt-only route now asks the built-in Codex ImageGen tool for one style/identity anchor and
-five construction references: front `(azimuth 0°, elevation 0°)`, right `(90°, 0°)`, back `(180°,
-0°)`, left `(270°, 0°)`, and top-down `(0°, 90°)`. The exact contract and checked-in images are in
-[`dark-fantasy-tree-reference-set.json`](../../integrations/voxel_displacement/reference/fixtures/dark-fantasy-tree-reference-set.json).
-The anchor is not treated as sufficient hidden geometry; all locked fields must remain consistent
-while only the camera angle changes. ImageGen output is a reconstruction hypothesis and still
-requires identity review before it is considered measurement-grade reference data.
-The current gpt-image-2 outputs are opaque RGB PNGs (the top view also has a different canvas size),
-so the manifest marks this set `reference-only-needs-normalization`; a future silhouette/visual-hull
-consumer must normalize canvas, scale, and background first.
+The prompt-only route now asks the built-in Codex ImageGen tool for one **single** 128×128 pixel-art
+construction sheet using the supplied layout template
+[`voxel-sprite-sheet-template-128.png`](../../integrations/voxel_displacement/reference/assets/templates/voxel-sprite-sheet-template-128.png).
+The fixed layout is top row `FRONT | RIGHT | BACK`, bottom row `LEFT | TOP`, with orthographic
+angles `(0°,0°)`, `(90°,0°)`, `(180°,0°)`, `(270°,0°)`, and `(0°,90°)` respectively. The tree
+result and contract are in [`dark-fantasy-tree-sprite-sheet.json`](../../integrations/voxel_displacement/reference/fixtures/dark-fantasy-tree-sprite-sheet.json).
+ImageGen output remains reconstruction evidence, not measured multi-view capture; identity and panel
+consistency still require review.
 
 The deterministic low-poly fixture in
 [`generate_low_poly_tree_obj.py`](../../forge/stage3_build/generate_low_poly_tree_obj.py) was then
@@ -78,9 +76,11 @@ The receipt is `success: true`, `boundsValid: true`, `targetFound: true`, and 12
 has 1,184 non-degenerate triangles; the converter emits 5,012 occupied cells across 62 chunks
 (`voxelSize: 0.1584315`) with four material slots (bark, leaf, moss, rune). The checked-in
 [`dark-fantasy-tree-isometric-voxel.png`](../../integrations/voxel_displacement/reference/evidence/dark-fantasy-tree-isometric-voxel.png)
-is the visually inspected proxy result. This proves the ImageGen-reference → low-poly OBJ →
-final-cell VXD → Three.js raster proxy path only; it does not prove GLB extraction, WebGPU traversal,
-animation, or Schroeder parity.
+is the visually inspected proxy result. The OBJ is a deterministic authored fixture keyed to the
+sheet; sprite-sheet-to-mesh extraction is not implemented. This therefore proves the
+ImageGen-sprite-sheet reference + low-poly OBJ → final-cell VXD → Three.js raster proxy path only;
+it does not prove image-to-mesh extraction, GLB extraction, WebGPU traversal, animation, or Schroeder
+parity.
 
 Open gates: GLB buffer extraction, worker cancellation/progress, alpha-cutout occupancy, per-cell
 material shading, scene-depth composition, animation frame baking, binary multi-chunk packaging,

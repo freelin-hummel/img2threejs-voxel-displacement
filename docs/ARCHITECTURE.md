@@ -47,7 +47,7 @@ The voxel-displacement fork is a sibling route, not another procedural primitive
 for the existing visual-hull or SDF voxel grids:
 
 ```text
-object prompt -> Codex ImageGen brief -> validated multi-view images -> normal sculpt intake
+object prompt -> Codex ImageGen brief + 128x128 sprite template -> validated sprite sheet -> normal sculpt intake
 material prompt -> Codex ImageGen brief -> validated albedo/height candidates -> texture calibration
 OBJ/GLB + height/albedo -> suitability route -> deterministic voxel-displacement texture bake
 static OBJ + optional height/albedo -> conservative surface-shell conversion (implemented)

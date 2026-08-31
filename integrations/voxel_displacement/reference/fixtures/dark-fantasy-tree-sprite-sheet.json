@@ -1,0 +1,49 @@
+{
+  "schema": "img2threejs.voxel-sprite-reference.v1",
+  "requestedModel": "gpt-image-2",
+  "executionMode": "built-in-tool",
+  "strategy": "single-template-sprite-sheet",
+  "subject": "dark fantasy ancient gnarled tree",
+  "template": {
+    "path": "../assets/templates/voxel-sprite-sheet-template-128.png",
+    "width": 128,
+    "height": 128,
+    "layout": {
+      "topRow": ["front", "right", "back"],
+      "bottomRow": ["left", "top"]
+    }
+  },
+  "spriteSheet": {
+    "path": "../assets/dark-fantasy-tree/dark-fantasy-tree-sprite-sheet-128.png",
+    "width": 128,
+    "height": 128,
+    "sourcePath": "../assets/dark-fantasy-tree/dark-fantasy-tree-sprite-sheet-gpt-image-2-source.png",
+    "sourceWidth": 1254,
+    "sourceHeight": 1254,
+    "downsample": "nearest-neighbor from the gpt-image-2 source canvas"
+  },
+  "constructionViews": [
+    {"id": "front", "azimuthDegrees": 0, "elevationDegrees": 0, "projection": "orthographic"},
+    {"id": "right", "azimuthDegrees": 90, "elevationDegrees": 0, "projection": "orthographic"},
+    {"id": "back", "azimuthDegrees": 180, "elevationDegrees": 0, "projection": "orthographic"},
+    {"id": "left", "azimuthDegrees": 270, "elevationDegrees": 0, "projection": "orthographic"},
+    {"id": "top", "azimuthDegrees": 0, "elevationDegrees": 90, "projection": "orthographic"}
+  ],
+  "lockedFields": [
+    "geometry",
+    "proportions",
+    "pixelScale",
+    "panelFraming",
+    "palette",
+    "silhouette"
+  ],
+  "review": {
+    "status": "reference-only",
+    "alpha": "opaque-rgb-with-checkerboard-backdrop",
+    "notes": [
+      "This sheet is a low-resolution construction reference, not ground-truth geometry.",
+      "Review branch topology and panel consistency before visual-hull or voxel occupancy extraction.",
+      "The checkerboard is visual backdrop pixels, not an alpha channel."
+    ]
+  }
+}

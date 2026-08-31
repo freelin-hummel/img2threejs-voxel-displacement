@@ -199,11 +199,13 @@ def height_fields(
 
 
 def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[str, Any]:
-    """Build a multi-call Codex ImageGen brief for reconstruction references.
+    """Build a Codex ImageGen brief for reconstruction references.
 
     The built-in tool is intentionally invoked by the agent, not by deterministic
-    forge code.  Separate view calls preserve useful per-view resolution.  Each
-    derived call uses the anchor as a reference and repeats the geometry lock.
+    forge code. Material references use several map/review outputs. Object,
+    environment, and character references use one template-driven 128x128
+    pixel-art construction sheet so the input is a sprite layout rather than a
+    cinematic render.
     """
 
     normalized = " ".join(prompt.split())
@@ -211,6 +213,8 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
         raise ValueError("text prompt must not be empty")
     if subject_kind not in {"object", "character", "environment", "material"}:
         raise ValueError("subject kind must be object, character, environment, or material")
+
+    construction_views: list[dict[str, Any]] = []
 
     if subject_kind == "material":
         anchor_request = (
@@ -251,117 +255,119 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
             "no labels, borders, watermarks, logos, or unrelated objects",
         ]
     else:
-        anchor_request = (
-            f"Create a reconstruction reference for this {subject_kind}: {normalized}. "
-            "Show exactly one complete subject in a three-quarter front view. This image is the style and identity anchor; construction geometry must come from the locked orthographic views that follow."
-        )
-        derived = [
+        construction_views = [
             {
                 "id": "front",
-                "operation": "generate-with-reference",
-                "reference": "anchor",
                 "view": "front orthographic",
                 "azimuthDegrees": 0,
                 "elevationDegrees": 0,
             },
             {
                 "id": "right",
-                "operation": "generate-with-reference",
-                "reference": "anchor",
                 "view": "right orthographic",
                 "azimuthDegrees": 90,
                 "elevationDegrees": 0,
             },
             {
                 "id": "back",
-                "operation": "generate-with-reference",
-                "reference": "anchor",
                 "view": "back orthographic",
                 "azimuthDegrees": 180,
                 "elevationDegrees": 0,
             },
             {
                 "id": "left",
-                "operation": "generate-with-reference",
-                "reference": "anchor",
                 "view": "left orthographic",
                 "azimuthDegrees": 270,
                 "elevationDegrees": 0,
             },
             {
                 "id": "top",
-                "operation": "generate-with-reference",
-                "reference": "anchor",
                 "view": "top-down orthographic",
                 "azimuthDegrees": 0,
                 "elevationDegrees": 90,
             },
         ]
         shared_constraints = (
-            "Keep the subject geometry, proportions, silhouette, materials, colors, handedness, and small details "
-            "identical across every view. Show the entire subject with generous padding. Use neutral diffuse studio "
-            "lighting that does not bake directional shadows into the albedo. Isolate it on a genuinely transparent "
-            "background. Use an orthographic camera with the same scale, focal setup, lighting, and framing in every "
-            "construction view; change only the listed azimuth/elevation. No floor, cast shadow, scenery, text, labels, "
-            "border, watermark, logo, extra object, or cropped part."
+            "Use the supplied layout template as the exact five-panel composition. Keep the subject geometry, "
+            "proportions, silhouette, materials, colors, handedness, and small details identical across every panel. "
+            "Render crisp low-resolution pixel art for a game sprite, with a limited palette, hard edges, nearest-neighbor "
+            "pixels, no anti-aliasing, no gradients, and no perspective. Use the same scale and pixel footprint in every "
+            "panel; change only the listed orthographic azimuth/elevation. Use a transparent or checkerboard backdrop. "
+            "No floor, cast shadow, scenery, extra object, border, watermark, or unrequested text."
         )
-        composition = "centered; full subject visible; three-quarter front anchor camera"
+        composition = "one 128x128 square sprite sheet; top row FRONT/RIGHT/BACK; bottom row LEFT/TOP; full subject visible in every panel"
         acceptance_required = [
-            "all files are readable raster images",
-            "one complete isolated subject per image",
-            "anchor identity and geometry remain consistent across views",
-            "front, right, back, left, and top-down construction views use the exact requested orthographic angles",
-            "construction views share scale, framing, lighting, and silhouette proportions",
-            "transparent background is preserved",
-            "no cast shadows, labels, watermarks, or extra objects",
+            "exactly one readable 128x128 raster sprite sheet is returned",
+            "the five template panels and FRONT/RIGHT/BACK/LEFT/TOP labels remain legible",
+            "one complete subject is visible in every panel",
+            "front, right, back, left, and top-down panels use the exact requested orthographic angles",
+            "panels share pixel scale, framing, palette, and silhouette proportions",
+            "transparent or checkerboard background is preserved",
+            "no perspective render, cast shadows, watermarks, or extra objects",
         ]
-    anchor_prompt = "\n".join(
-        (
-            "Use case: stylized-concept",
-            "Asset type: voxel-displacement reconstruction reference",
-            f"Primary request: {anchor_request}",
-            "Style/medium: clean 3D asset turnaround render; materially legible; no cinematic grading",
-            f"Composition/framing: {composition}",
-            f"Constraints: {shared_constraints}",
-        )
-    )
-
-    workflow: list[dict[str, Any]] = [
-        {
-            "id": "anchor",
-            "operation": "generate",
-            "toolInvocation": "$imagegen",
-            "prompt": anchor_prompt,
-        }
-    ]
-    for view in derived:
-        if subject_kind == "material":
-            primary_request = view["request"]
-            derived_composition = composition
-            derived_constraints = shared_constraints
-        else:
-            primary_request = (
-                f"Render the exact same subject from the {view['view']} at azimuth {view['azimuthDegrees']} degrees "
-                f"and elevation {view['elevationDegrees']} degrees. This is a construction reference, not a new design."
+        sprite_prompt = "\n".join(
+            (
+                "Use case: stylized-concept",
+                "Asset type: 128x128 pixel-art voxel-displacement construction sprite sheet",
+                "Input images: Image 1: exact five-panel layout template; Image 2: optional subject/style reference",
+                f"Primary request: Create one 128x128 sprite sheet for this {subject_kind}: {normalized}.",
+                f"Composition/framing: {composition}",
+                f"Constraints: {shared_constraints}",
+                "Output: exactly one 128x128 PNG; do not return separate angle images or a 3D render.",
             )
-            derived_composition = "centered; full subject visible; exactly match the anchor scale and padding"
-            derived_constraints = f"change only the camera viewpoint; do not redesign any part. {shared_constraints}"
-        workflow.append(
-            {
-                **view,
-                "toolInvocation": "$imagegen",
-                "prompt": "\n".join(
-                    (
-                        "Use case: identity-preserve",
-                        "Asset type: voxel-displacement reconstruction reference",
-                        "Input images: Image 1: approved anchor reference",
-                        f"Primary request: {primary_request}",
-                        f"Composition/framing: {derived_composition}",
-                        f"Constraints: {derived_constraints}",
-                    )
-                ),
-            }
         )
+        workflow = [
+            {
+                "id": "sprite-sheet",
+                "operation": "generate-with-template",
+                "toolInvocation": "$imagegen",
+                "template": {
+                    "id": "voxel-sprite-sheet-template-128",
+                    "path": "integrations/voxel_displacement/reference/assets/templates/voxel-sprite-sheet-template-128.png",
+                    "width": 128,
+                    "height": 128,
+                },
+                "views": construction_views,
+                "prompt": sprite_prompt,
+            }
+        ]
+
+    if subject_kind == "material":
+        anchor_prompt = "\n".join(
+            (
+                "Use case: stylized-concept",
+                "Asset type: voxel-displacement reconstruction reference",
+                f"Primary request: {anchor_request}",
+                "Style/medium: clean 3D asset turnaround render; materially legible; no cinematic grading",
+                f"Composition/framing: {composition}",
+                f"Constraints: {shared_constraints}",
+            )
+        )
+        workflow = [
+            {
+                "id": "anchor",
+                "operation": "generate",
+                "toolInvocation": "$imagegen",
+                "prompt": anchor_prompt,
+            }
+        ]
+        for view in derived:
+            workflow.append(
+                {
+                    **view,
+                    "toolInvocation": "$imagegen",
+                    "prompt": "\n".join(
+                        (
+                            "Use case: identity-preserve",
+                            "Asset type: voxel-displacement reconstruction reference",
+                            "Input images: Image 1: approved anchor reference",
+                            f"Primary request: {view['request']}",
+                            f"Composition/framing: {composition}",
+                            f"Constraints: {shared_constraints}",
+                        )
+                    ),
+                }
+            )
 
     return {
         "schema": REFERENCE_BRIEF_SCHEMA,
@@ -371,29 +377,21 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
         "executionMode": "built-in-tool",
         "subjectKind": subject_kind,
         "sourcePrompt": normalized,
-        "strategy": "anchor-then-derived-views",
+        "strategy": "anchor-then-derived-views" if subject_kind == "material" else "single-template-sprite-sheet",
         "viewContract": {
-            "anchorRole": "style-and-identity-anchor; not sufficient for hidden geometry",
-            "constructionViews": [
-                {
-                    "id": view["id"],
-                    "view": view["view"],
-                    "azimuthDegrees": view["azimuthDegrees"],
-                    "elevationDegrees": view["elevationDegrees"],
-                }
-                for view in derived
-                if subject_kind != "material"
-            ],
+            "anchorRole": "style-and-identity reference is optional; layout template is mandatory" if subject_kind != "material" else "style-and-identity-anchor",
+            "template": workflow[0].get("template") if subject_kind != "material" else None,
+            "constructionViews": construction_views,
             "lockedFields": ["geometry", "proportions", "scale", "framing", "lighting", "materials", "silhouette"],
         },
         "workflow": workflow,
         "acceptance": {
             "required": acceptance_required,
-            "decision": "accept-or-regenerate-one-view",
+            "decision": "accept-or-regenerate-one-sheet" if subject_kind != "material" else "accept-or-regenerate-one-view",
             "note": (
                 "Generated material maps are hypotheses, not calibrated measurements. Validate seams, channel meaning, and relief before baking."
                 if subject_kind == "material"
-                else "Generated views are reference evidence, not proof of hidden-side geometry. Validate consistency before visual-hull or sculpt intake."
+                else "The sprite sheet is reference evidence, not proof of hidden-side geometry. Validate panel consistency before visual-hull or sculpt intake."
             ),
         },
     }
