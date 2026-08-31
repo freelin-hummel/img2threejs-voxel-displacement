@@ -24,6 +24,7 @@ from forge._shared.voxel_mesh import triangle_box_overlap, voxelize_obj
 from forge.stage1_intake.plan_voxel_displacement import build_plan, probe_obj
 from forge.stage1_intake.probe_glb import parse_glb
 from forge.stage3_build.bake_voxel_displacement import bake, validate_bake
+from forge.stage3_build.generate_low_poly_tree_obj import build_tree
 from forge.tests.test_glb_reference import write_triangle_glb
 
 
@@ -128,15 +129,18 @@ class HeightFieldContracts(unittest.TestCase):
 
 
 class ReferenceBriefContracts(unittest.TestCase):
-    def test_object_prompt_builds_anchor_and_four_locked_views(self) -> None:
+    def test_object_prompt_builds_anchor_and_five_locked_construction_views(self) -> None:
         brief = build_reference_brief("a brass clockwork beetle", subject_kind="object")
 
         self.assertEqual(brief["requestedModel"], "gpt-image-2")
         self.assertEqual(brief["executionMode"], "built-in-tool")
-        self.assertEqual([step["id"] for step in brief["workflow"]], ["anchor", "front", "right", "back", "left"])
+        self.assertEqual([step["id"] for step in brief["workflow"]], ["anchor", "front", "right", "back", "left", "top"])
         self.assertTrue(all(step["toolInvocation"] == "$imagegen" for step in brief["workflow"]))
         self.assertIn("change only the camera viewpoint", brief["workflow"][1]["prompt"])
+        self.assertIn("azimuth 0 degrees and elevation 0 degrees", brief["workflow"][1]["prompt"])
+        self.assertIn("azimuth 0 degrees and elevation 90 degrees", brief["workflow"][5]["prompt"])
         self.assertIn("transparent background", brief["workflow"][0]["prompt"])
+        self.assertEqual(brief["viewContract"]["constructionViews"][-1]["id"], "top")
 
     def test_empty_prompt_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "must not be empty"):
@@ -152,6 +156,18 @@ class ReferenceBriefContracts(unittest.TestCase):
         self.assertNotIn("transparent background", brief["workflow"][0]["prompt"])
         self.assertIn("height-map candidate", brief["workflow"][1]["prompt"])
         self.assertTrue(any("estimate" in item for item in brief["acceptance"]["required"]))
+
+
+class LowPolyTreeFixtureContracts(unittest.TestCase):
+    def test_dark_fantasy_tree_fixture_is_deterministic_and_has_no_duplicate_corners(self) -> None:
+        first = build_tree()
+        second = build_tree()
+
+        self.assertEqual(first.vertices, second.vertices)
+        self.assertEqual(first.faces, second.faces)
+        self.assertEqual({material for material, _corners in first.faces}, {"bark", "leaf", "moss", "rune"})
+        self.assertGreater(len(first.faces), 500)
+        self.assertTrue(all(len({corner[0] for corner in corners}) == len(corners) for _material, corners in first.faces))
 
 
 class IntakeRoutingContracts(unittest.TestCase):

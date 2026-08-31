@@ -2,6 +2,12 @@ import * as THREE from "three";
 
 const CHUNK_EDGE = 8;
 const DEFAULT_CELL_SIZE = 0.125;
+const DEFAULT_MATERIAL_PALETTE = {
+  0: [92, 78, 72],
+  1: [70, 132, 142],
+  2: [54, 42, 82],
+  3: [236, 142, 38],
+};
 
 function finite(value, fallback) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -96,53 +102,75 @@ function occupiedCells(document) {
         ),
         color: normaliseColor(cell.attributes?.albedo),
         normal: normaliseNormal(cell.attributes?.normal),
+        material: Math.max(0, Math.round(finite(cell.attributes?.material, 0))),
       });
     }
   }
   return { cells, cellSize };
 }
 
-function makeVoxelMesh(document) {
+function makeVoxelMesh(document, materialPalette = {}) {
   const { cells, cellSize } = occupiedCells(document);
-  const geometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xc28d54,
-    roughness: 0.82,
-    metalness: 0.04,
-    flatShading: true,
-  });
-  const mesh = new THREE.InstancedMesh(geometry, material, Math.max(1, cells.length));
-  mesh.name = "voxel-reference-cubes";
-  mesh.userData.sceneproofId = "voxel-reference-cubes";
-  const transform = new THREE.Object3D();
-  const instanceAlbedo = new Float32Array(Math.max(1, cells.length) * 4);
-  const instanceNormals = new Float32Array(Math.max(1, cells.length) * 3);
-  for (let index = 0; index < cells.length; index += 1) {
-    transform.position.copy(cells[index].position);
-    transform.updateMatrix();
-    mesh.setMatrixAt(index, transform.matrix);
-    instanceAlbedo[index * 4] = cells[index].color[0] / 255;
-    instanceAlbedo[index * 4 + 1] = cells[index].color[1] / 255;
-    instanceAlbedo[index * 4 + 2] = cells[index].color[2] / 255;
-    instanceAlbedo[index * 4 + 3] = cells[index].color[3] / 255;
-    instanceNormals[index * 3] = cells[index].normal.x;
-    instanceNormals[index * 3 + 1] = cells[index].normal.y;
-    instanceNormals[index * 3 + 2] = cells[index].normal.z;
+  const materialColors = { ...DEFAULT_MATERIAL_PALETTE, ...materialPalette };
+  for (const cell of cells) {
+    if (cell.color[0] === 190 && cell.color[1] === 190 && cell.color[2] === 190 && cell.color[3] === 255) {
+      const fallback = normaliseColor(materialColors[cell.material]);
+      cell.color = fallback;
+    }
   }
-  if (cells.length === 0) {
-    transform.position.set(0, -10000, 0);
-    transform.updateMatrix();
-    mesh.setMatrixAt(0, transform.matrix);
+  const palette = new THREE.Group();
+  palette.name = "voxel-reference-cubes";
+  palette.userData.sceneproofId = "voxel-reference-cubes";
+  palette.userData.occupiedCellCount = cells.length;
+  palette.userData.cellSize = cellSize;
+  palette.userData.albedoAttribute = "instanceAlbedo (sRGB RGBA8 normalized)";
+  palette.userData.normalAttribute = "instanceNormal";
+  const buckets = new Map();
+  for (const cell of cells) {
+    const bucket = cell.color.slice(0, 3).map((channel) => Math.round(channel / 32) * 32);
+    const key = bucket.join(",");
+    if (!buckets.has(key)) buckets.set(key, { color: bucket, cells: [] });
+    buckets.get(key).cells.push(cell);
   }
-  mesh.count = Math.max(1, cells.length);
-  geometry.setAttribute("instanceAlbedo", new THREE.InstancedBufferAttribute(instanceAlbedo, 4));
-  geometry.setAttribute("instanceNormal", new THREE.InstancedBufferAttribute(instanceNormals, 3));
-  mesh.instanceMatrix.needsUpdate = true;
-  mesh.userData.occupiedCellCount = cells.length;
-  mesh.userData.cellSize = cellSize;
-  mesh.userData.albedoAttribute = "instanceAlbedo (sRGB RGBA8 normalized)";
-  mesh.userData.normalAttribute = "instanceNormal";
-  return mesh;
+  if (buckets.size === 0) buckets.set("0,0,0", { color: [190, 190, 190], cells: [] });
+  for (const [key, bucket] of buckets) {
+    const bucketCells = bucket.cells;
+    const geometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
+    const material = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(bucket.color[0] / 255, bucket.color[1] / 255, bucket.color[2] / 255),
+      roughness: 0.82,
+      metalness: 0.04,
+      flatShading: true,
+    });
+    const mesh = new THREE.InstancedMesh(geometry, material, Math.max(1, bucketCells.length));
+    mesh.name = `voxel-reference-cubes-${key.replaceAll(",", "-")}`;
+    const transform = new THREE.Object3D();
+    const instanceAlbedo = new Float32Array(Math.max(1, bucketCells.length) * 4);
+    const instanceNormals = new Float32Array(Math.max(1, bucketCells.length) * 3);
+    for (let index = 0; index < bucketCells.length; index += 1) {
+      transform.position.copy(bucketCells[index].position);
+      transform.updateMatrix();
+      mesh.setMatrixAt(index, transform.matrix);
+      instanceAlbedo[index * 4] = bucketCells[index].color[0] / 255;
+      instanceAlbedo[index * 4 + 1] = bucketCells[index].color[1] / 255;
+      instanceAlbedo[index * 4 + 2] = bucketCells[index].color[2] / 255;
+      instanceAlbedo[index * 4 + 3] = bucketCells[index].color[3] / 255;
+      instanceNormals[index * 3] = bucketCells[index].normal.x;
+      instanceNormals[index * 3 + 1] = bucketCells[index].normal.y;
+      instanceNormals[index * 3 + 2] = bucketCells[index].normal.z;
+    }
+    if (bucketCells.length === 0) {
+      transform.position.set(0, -10000, 0);
+      transform.updateMatrix();
+      mesh.setMatrixAt(0, transform.matrix);
+    }
+    mesh.count = Math.max(1, bucketCells.length);
+    geometry.setAttribute("instanceAlbedo", new THREE.InstancedBufferAttribute(instanceAlbedo, 4));
+    geometry.setAttribute("instanceNormal", new THREE.InstancedBufferAttribute(instanceNormals, 3));
+    mesh.instanceMatrix.needsUpdate = true;
+    palette.add(mesh);
+  }
+  return palette;
 }
 
 /**
@@ -161,7 +189,8 @@ export async function createVoxelReferenceScene({ width = 1280, height = 720, pr
   root.userData.sceneproofId = "voxel-reference-root";
   root.userData.vxdKind = document.kind;
   root.userData.vxdVersion = document.version;
-  root.add(makeVoxelMesh(document));
+  const materialPalette = props?.artifact?.materialPalette ?? props?.materialPalette ?? {};
+  root.add(makeVoxelMesh(document, materialPalette));
   scene.add(root);
 
   scene.add(new THREE.HemisphereLight(0xbfd7ff, 0x283040, 2.4));

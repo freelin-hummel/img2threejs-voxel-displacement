@@ -253,26 +253,65 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
     else:
         anchor_request = (
             f"Create a reconstruction reference for this {subject_kind}: {normalized}. "
-            "Show exactly one complete subject in a three-quarter front view."
+            "Show exactly one complete subject in a three-quarter front view. This image is the style and identity anchor; construction geometry must come from the locked orthographic views that follow."
         )
         derived = [
-            {"id": "front", "operation": "generate-with-reference", "reference": "anchor", "view": "front orthographic"},
-            {"id": "right", "operation": "generate-with-reference", "reference": "anchor", "view": "right orthographic"},
-            {"id": "back", "operation": "generate-with-reference", "reference": "anchor", "view": "back orthographic"},
-            {"id": "left", "operation": "generate-with-reference", "reference": "anchor", "view": "left orthographic"},
+            {
+                "id": "front",
+                "operation": "generate-with-reference",
+                "reference": "anchor",
+                "view": "front orthographic",
+                "azimuthDegrees": 0,
+                "elevationDegrees": 0,
+            },
+            {
+                "id": "right",
+                "operation": "generate-with-reference",
+                "reference": "anchor",
+                "view": "right orthographic",
+                "azimuthDegrees": 90,
+                "elevationDegrees": 0,
+            },
+            {
+                "id": "back",
+                "operation": "generate-with-reference",
+                "reference": "anchor",
+                "view": "back orthographic",
+                "azimuthDegrees": 180,
+                "elevationDegrees": 0,
+            },
+            {
+                "id": "left",
+                "operation": "generate-with-reference",
+                "reference": "anchor",
+                "view": "left orthographic",
+                "azimuthDegrees": 270,
+                "elevationDegrees": 0,
+            },
+            {
+                "id": "top",
+                "operation": "generate-with-reference",
+                "reference": "anchor",
+                "view": "top-down orthographic",
+                "azimuthDegrees": 0,
+                "elevationDegrees": 90,
+            },
         ]
         shared_constraints = (
             "Keep the subject geometry, proportions, silhouette, materials, colors, handedness, and small details "
             "identical across every view. Show the entire subject with generous padding. Use neutral diffuse studio "
             "lighting that does not bake directional shadows into the albedo. Isolate it on a genuinely transparent "
-            "background. No floor, cast shadow, scenery, text, labels, border, watermark, logo, extra object, or cropped part."
+            "background. Use an orthographic camera with the same scale, focal setup, lighting, and framing in every "
+            "construction view; change only the listed azimuth/elevation. No floor, cast shadow, scenery, text, labels, "
+            "border, watermark, logo, extra object, or cropped part."
         )
-        composition = "centered; full subject visible; three-quarter front camera"
+        composition = "centered; full subject visible; three-quarter front anchor camera"
         acceptance_required = [
             "all files are readable raster images",
             "one complete isolated subject per image",
             "anchor identity and geometry remain consistent across views",
-            "view direction matches the requested camera",
+            "front, right, back, left, and top-down construction views use the exact requested orthographic angles",
+            "construction views share scale, framing, lighting, and silhouette proportions",
             "transparent background is preserved",
             "no cast shadows, labels, watermarks, or extra objects",
         ]
@@ -301,9 +340,12 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
             derived_composition = composition
             derived_constraints = shared_constraints
         else:
-            primary_request = f"Render the exact same subject from the {view['view']} view."
-            derived_composition = "centered; full subject visible; match the anchor scale and padding"
-            derived_constraints = f"change only the camera viewpoint. {shared_constraints}"
+            primary_request = (
+                f"Render the exact same subject from the {view['view']} at azimuth {view['azimuthDegrees']} degrees "
+                f"and elevation {view['elevationDegrees']} degrees. This is a construction reference, not a new design."
+            )
+            derived_composition = "centered; full subject visible; exactly match the anchor scale and padding"
+            derived_constraints = f"change only the camera viewpoint; do not redesign any part. {shared_constraints}"
         workflow.append(
             {
                 **view,
@@ -330,6 +372,20 @@ def build_reference_brief(prompt: str, *, subject_kind: str = "object") -> dict[
         "subjectKind": subject_kind,
         "sourcePrompt": normalized,
         "strategy": "anchor-then-derived-views",
+        "viewContract": {
+            "anchorRole": "style-and-identity-anchor; not sufficient for hidden geometry",
+            "constructionViews": [
+                {
+                    "id": view["id"],
+                    "view": view["view"],
+                    "azimuthDegrees": view["azimuthDegrees"],
+                    "elevationDegrees": view["elevationDegrees"],
+                }
+                for view in derived
+                if subject_kind != "material"
+            ],
+            "lockedFields": ["geometry", "proportions", "scale", "framing", "lighting", "materials", "silhouette"],
+        },
         "workflow": workflow,
         "acceptance": {
             "required": acceptance_required,

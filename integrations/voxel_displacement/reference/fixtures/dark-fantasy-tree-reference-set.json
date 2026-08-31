@@ -1,0 +1,72 @@
+{
+  "schema": "img2threejs.voxel-reference-set.v1",
+  "requestedModel": "gpt-image-2",
+  "executionMode": "built-in-tool",
+  "subject": "dark fantasy ancient gnarled tree",
+  "anchor": {
+    "id": "anchor",
+    "role": "style-and-identity-anchor",
+    "path": "../assets/dark-fantasy-tree/dark-fantasy-tree-anchor.png",
+    "camera": "three-quarter front"
+  },
+  "constructionViews": [
+    {
+      "id": "front",
+      "path": "../assets/dark-fantasy-tree/dark-fantasy-tree-front.png",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 0,
+      "projection": "orthographic"
+    },
+    {
+      "id": "right",
+      "path": "../assets/dark-fantasy-tree/dark-fantasy-tree-right.png",
+      "azimuthDegrees": 90,
+      "elevationDegrees": 0,
+      "projection": "orthographic"
+    },
+    {
+      "id": "back",
+      "path": "../assets/dark-fantasy-tree/dark-fantasy-tree-back.png",
+      "azimuthDegrees": 180,
+      "elevationDegrees": 0,
+      "projection": "orthographic"
+    },
+    {
+      "id": "left",
+      "path": "../assets/dark-fantasy-tree/dark-fantasy-tree-left.png",
+      "azimuthDegrees": 270,
+      "elevationDegrees": 0,
+      "projection": "orthographic"
+    },
+    {
+      "id": "top",
+      "path": "../assets/dark-fantasy-tree/dark-fantasy-tree-top.png",
+      "azimuthDegrees": 0,
+      "elevationDegrees": 90,
+      "projection": "orthographic"
+    }
+  ],
+  "lockedFields": [
+    "geometry",
+    "proportions",
+    "scale",
+    "framing",
+    "lighting",
+    "materials",
+    "silhouette"
+  ],
+  "review": {
+    "status": "reference-only-needs-normalization",
+    "alpha": "opaque-rgb-output; no alpha channel",
+    "canvasSizes": {
+      "anchor-front-right-back-left": "1254x1254",
+      "top": "1402x1122"
+    },
+    "notes": [
+      "Generated images are useful angle and style hypotheses, not measurement-grade multi-view capture.",
+      "Normalize canvas, scale, and background before using them as a silhouette or visual-hull source.",
+      "Do not infer hidden geometry from the three-quarter anchor alone."
+    ]
+  },
+  "honesty": "ImageGen views are reconstruction references and require identity review; they are not measured multi-view capture or ground-truth geometry."
+}

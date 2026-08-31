@@ -66,7 +66,9 @@ python3 forge/stage1_intake/plan_voxel_displacement.py \
 Exit `0` means the selected stage may continue, `1` means a stable blocked intake finding, and `2`
 means invocation or file failure. `planned` names a real future conversion mode, not implemented
 runtime capability. Generated references are always external image evidence; the planner never
-calls ImageGen or approves pixels.
+calls ImageGen or approves pixels. For object prompts, the emitted brief requires a three-quarter
+style/identity anchor plus five locked orthographic construction views: front `(0°, 0°)`, right
+`(90°, 0°)`, back `(180°, 0°)`, left `(270°, 0°)`, and top `(0°, 90°)` as azimuth/elevation.
 
 ## stage3_build/voxelize_obj.py
 
@@ -85,6 +87,18 @@ The converter is static OBJ only. It refuses missing UVs when a texture is suppl
 and candidate budgets, retains source hashes, and records GLB extraction, animation, binary-container,
 and WebGPU work as unimplemented. Use [`integrations/voxel_displacement/reference/`](../integrations/voxel_displacement/reference/)
 for the Three.js proxy renderer and SceneProof evidence path.
+
+## stage3_build/generate_low_poly_tree_obj.py
+
+Deterministic low-poly dark-fantasy tree fixture used to exercise the prompt-reference → OBJ → VXD
+path. It is an authored test source, not an inverse reconstruction of the generated images.
+
+```bash
+python3 forge/stage3_build/generate_low_poly_tree_obj.py --out /tmp/dark-fantasy-tree.obj
+python3 forge/stage3_build/voxelize_obj.py \
+  --mesh /tmp/dark-fantasy-tree.obj --longest-axis-voxels 48 \
+  --out /tmp/dark-fantasy-tree-bake.json
+```
 
 ## stage3_build/bake_voxel_displacement.py
 

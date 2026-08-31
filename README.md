@@ -97,8 +97,10 @@ different source families without pretending they are the same algorithm:
 
 A text prompt is also valid intake. The planner emits an anchor-plus-derived-reference brief for
 Codex's built-in `$imagegen` workflow requesting `gpt-image-2`; the caller must verify the active
-route. Object references must pass readability, viewpoint, transparency, and cross-view identity
-checks. Material references instead require seam, channel-meaning, and relief-consistency review.
+route. Object references use the anchor only for style/identity and request five locked orthographic
+construction views (front/right/back/left/top at explicit azimuth/elevation angles) for hidden
+geometry. They must pass readability, viewpoint, transparency, and cross-view identity checks.
+Material references instead require seam, channel-meaning, and relief-consistency review.
 
 ```bash
 python3 forge/stage1_intake/plan_voxel_displacement.py \
@@ -118,6 +120,10 @@ buffer extraction, animation frame baking, or a WebGPU hierarchical-DDA renderer
 public, so this fork reproduces published principles and must earn parity through its own runtime
 evidence. The consolidated, cross-project research wiki begins at
 [`docs/voxel-displacement/README.md`](docs/voxel-displacement/README.md).
+
+The first prompt-to-voxel demonstration is the checked-in dark-fantasy tree reference set and
+deterministic low-poly fixture in
+[`integrations/voxel_displacement/reference/`](integrations/voxel_displacement/reference/).
 
 ### Subjects and detail accuracy
 

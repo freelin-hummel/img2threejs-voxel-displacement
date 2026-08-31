@@ -41,8 +41,9 @@ test("reference scene consumes final VXD cells without adding displacement", asy
     }],
   };
   const result = await createVoxelReferenceScene({ props: { artifact } });
-  const mesh = result.scene.getObjectByName("voxel-reference-cubes");
-  assert.equal(mesh?.userData.occupiedCellCount, 1);
+  const palette = result.scene.getObjectByName("voxel-reference-cubes");
+  const mesh = palette?.children[0];
+  assert.equal(palette?.userData.occupiedCellCount, 1);
   assert.equal(mesh?.geometry.getAttribute("instanceAlbedo")?.count, 1);
   assert.equal(mesh?.geometry.getAttribute("instanceNormal")?.count, 1);
   assert.deepEqual(mesh?.position.toArray(), [0, 0, 0]);

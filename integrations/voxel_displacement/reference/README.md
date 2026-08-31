@@ -5,6 +5,12 @@ one `BoxGeometry` instance at each final occupied cell and transfers the baked a
 attributes. This is intentionally a proxy renderer, not the production traversal milestone: it does
 not perform WebGPU traversal, hierarchical DDA, texture sampling, or a second displacement pass.
 
+The checked-in [`dark-fantasy-tree-reference-set.json`](fixtures/dark-fantasy-tree-reference-set.json)
+records the prompt-only input contract: a three-quarter style/identity anchor plus locked front,
+right, back, left, and top orthographic construction views. The generated images are under
+[`assets/dark-fantasy-tree/`](assets/dark-fantasy-tree/); proxy evidence renders are under
+[`evidence/`](evidence/).
+
 ## SceneProof evidence
 
 From this directory's package root:
