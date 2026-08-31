@@ -70,6 +70,13 @@ sceneproof render integrations/voxel_displacement/reference/scene.js \
   three:voxel-reference-cubes --export createVoxelReferenceScene --renderer three \
   --props /tmp/dark-fantasy-tree-props.json --view isometric --framing fit --zoom 1.2 \
   --out integrations/voxel_displacement/reference/evidence/dark-fantasy-tree-isometric-voxel.png
+
+# Sprite-sized inspection capture (the wide 1280x720 capture above remains useful for review)
+sceneproof render integrations/voxel_displacement/reference/scene.js \
+  three:voxel-reference-cubes --export createVoxelReferenceScene --renderer three \
+  --props /tmp/dark-fantasy-tree-props.json --view isometric --width 128 --height 128 \
+  --zoom 1.5 --framing fit --margin 0.05 \
+  --out integrations/voxel_displacement/reference/evidence/dark-fantasy-tree-isometric-voxel-128.png
 ```
 
 The receipt is `success: true`, `boundsValid: true`, `targetFound: true`, and 1280×720. The source
@@ -81,6 +88,9 @@ sheet; sprite-sheet-to-mesh/depth extraction is intentionally not part of this r
 the art-direction reference → renderer-compatible low-poly OBJ → final-cell surface VXD → Three.js
 raster proxy path only; it does not prove image-to-mesh extraction, GLB extraction, WebGPU traversal,
 animation, or Schroeder parity.
+The companion [`dark-fantasy-tree-isometric-voxel-128.png`](../../integrations/voxel_displacement/reference/evidence/dark-fantasy-tree-isometric-voxel-128.png)
+is the same proxy rendered at the 128×128 inspection size used by the reference sheet; it is a
+presentation capture, not a change to the voxel grid resolution.
 
 Open gates: GLB buffer extraction, worker cancellation/progress, alpha-cutout occupancy, per-cell
 material shading, scene-depth composition, animation frame baking, binary multi-chunk packaging,
